@@ -1,0 +1,151 @@
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  background: #0b1020;
+  color: #eef2ff;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a, #111827 45%, #1f2937);
+}
+
+button, input, textarea {
+  font: inherit;
+}
+
+.app-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 12px;
+  color: #a5b4fc;
+}
+
+h1, h2, h3, p {
+  margin-top: 0;
+}
+
+.metrics-box {
+  background: rgba(99, 102, 241, 0.14);
+  border: 1px solid rgba(165, 180, 252, 0.4);
+  padding: 12px 16px;
+  border-radius: 12px;
+  min-width: 120px;
+  text-align: center;
+}
+
+.metrics-box strong {
+  display: block;
+  font-size: 26px;
+}
+
+.section-block {
+  margin-top: 28px;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+}
+
+.movie-card,
+.review-card,
+.metric-card {
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+}
+
+.poster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 150px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  font-size: 36px;
+  font-weight: bold;
+}
+
+.review-card {
+  margin-bottom: 18px;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.rating {
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.comment-box {
+  margin-top: 14px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  padding-top: 12px;
+}
+
+.comment-box ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
+.comment-empty {
+  color: #cbd5e1;
+  opacity: 0.8;
+}
+
+.mini-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 16px;
+}
+
+.metric-card span {
+  display: block;
+  font-size: 12px;
+  color: #a5b4fc;
+  margin-bottom: 8px;
+}
+
+.metric-card strong {
+  font-size: 26px;
+}
+
+.error {
+  color: #fca5a5;
+  background: rgba(127, 29, 29, 0.2);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
