@@ -1,6 +1,30 @@
 import { useEffect, useState } from 'react';
 import { getMovies, getReviews, getComments, getProfileMetrics } from './api';
 
+function consumeSsoParams() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('sso_token');
+  const email = params.get('sso_email');
+
+  if (token && email) {
+    localStorage.setItem('tapecloud_token', token);
+    localStorage.setItem('tapecloud_email', email);
+    localStorage.setItem('tapecloud_display_name', params.get('sso_display_name') || '');
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+}
+
+function getSessionUser() {
+  const email = localStorage.getItem('tapecloud_email');
+  if (!email) {
+    return null;
+  }
+  return {
+    email,
+    displayName: localStorage.getItem('tapecloud_display_name') || email.split('@')[0],
+  };
+}
+
 function App() {
   const [movies, setMovies] = useState([]);
   const [reviews, setReviews] = useState([]);
@@ -8,25 +32,29 @@ function App() {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [sessionUser, setSessionUser] = useState(null);
 
   useEffect(() => {
+    consumeSsoParams();
+    setSessionUser(getSessionUser());
+
     async function loadData() {
       try {
         setLoading(true);
-        const [movieData, reviewData, profileData] = await Promise.all([
-          getMovies(),
-          getReviews(),
-          getProfileMetrics(1),
-        ]);
-
+        const movieData = await getMovies();
         setMovies(movieData || []);
+
+        // Reseñas, comentarios y métricas todavía no existen en el backend central.
+        const [reviewData, profileData] = await Promise.all([
+          getReviews().catch(() => []),
+          getProfileMetrics(1).catch(() => null),
+        ]);
         setReviews(reviewData || []);
         setMetrics(profileData);
 
         const commentMap = {};
         for (const review of reviewData || []) {
-          const data = await getComments(review.id);
-          commentMap[review.id] = data || [];
+          commentMap[review.id] = await getComments(review.id).catch(() => []);
         }
         setCommentsByReview(commentMap);
       } catch (err) {
@@ -54,6 +82,10 @@ function App() {
           <p className="eyebrow">TapeFlix</p>
           <h1>Catálogo y reseñas</h1>
         </div>
+        <a className="back-to-portal" href="http://localhost:5173">
+          Volver al portal
+        </a>
+        {sessionUser && <span className="session-badge">Sesión: {sessionUser.displayName}</span>}
         <div className="metrics-box">
           <strong>{metrics?.total_reviews ?? 0}</strong>
           <span>reviews totales</span>
@@ -65,10 +97,14 @@ function App() {
         <div className="cards-grid">
           {movies.map((movie) => (
             <article key={movie.id} className="movie-card">
-              <div className="poster">{movie.title?.[0] || 'F'}</div>
+              {movie.imageUrl ? (
+                <img className="poster-image" src={movie.imageUrl} alt={movie.title} />
+              ) : (
+                <div className="poster">{movie.title?.[0] || 'F'}</div>
+              )}
               <h3>{movie.title}</h3>
-              <p>{movie.genre}</p>
-              <small>{movie.release_year}</small>
+              <p>{movie.description}</p>
+              <small>{movie.releaseDate}</small>
             </article>
           ))}
         </div>

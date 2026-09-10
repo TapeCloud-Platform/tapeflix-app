@@ -21,7 +21,7 @@ async function request(path) {
 }
 
 export async function getMovies() {
-  return request('/api/content?source_app=tapeflix');
+  return request('/api/content?sourceApp=tapeflix');
 }
 
 export async function getReviews() {
