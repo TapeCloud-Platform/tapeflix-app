@@ -1,8 +1,19 @@
 import { useEffect, useState } from 'react';
 import { getMovies, getReviews, getComments, getProfileMetrics } from './api';
+import MovieModal from './components/MovieModal';
+import CategoryModal from './components/CategoryModal';
 
 function consumeSsoParams() {
   const params = new URLSearchParams(window.location.search);
+
+  if (params.get('sso_logout') === 'true') {
+    localStorage.removeItem('tapecloud_token');
+    localStorage.removeItem('tapecloud_email');
+    localStorage.removeItem('tapecloud_display_name');
+    window.history.replaceState({}, '', window.location.pathname);
+    return;
+  }
+
   const token = params.get('sso_token');
   const email = params.get('sso_email');
 
@@ -33,6 +44,9 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [sessionUser, setSessionUser] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('Todas');
+  const [selectedMovie, setSelectedMovie] = useState(null);
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
 
   useEffect(() => {
     consumeSsoParams();
@@ -67,6 +81,28 @@ function App() {
     loadData();
   }, []);
 
+  // Extrae todas las categorías únicas de la lista de películas
+  const categories = ['Todas', ...Array.from(
+    new Set(
+      movies
+        .flatMap((m) => (m.genre ? m.genre.split(',').map((g) => g.trim()) : []))
+        .filter(Boolean)
+    )
+  ).sort()];
+
+  const filteredMovies = selectedCategory === 'Todas'
+    ? movies
+      .sort((a, b) => (b.voteAverage || b.vote_average || 0) - (a.voteAverage || a.vote_average || 0))
+      .slice(0, 15)
+    : movies.filter((m) => m.genre && m.genre.toLowerCase().includes(selectedCategory.toLowerCase()));
+
+  function handleLogout() {
+    localStorage.removeItem('tapecloud_token');
+    localStorage.removeItem('tapecloud_email');
+    localStorage.removeItem('tapecloud_display_name');
+    setSessionUser(null);
+  }
+
   if (loading) {
     return <div className="app-shell"><h1>Loading TapeFlix...</h1></div>;
   }
@@ -85,7 +121,14 @@ function App() {
         <a className="back-to-portal" href="http://localhost:5173">
           Volver al portal
         </a>
-        {sessionUser && <span className="session-badge">Sesión: {sessionUser.displayName}</span>}
+        {sessionUser && (
+          <div className="session-container">
+            <span className="session-badge">Sesión: {sessionUser.displayName}</span>
+            <button type="button" className="logout-button-small" onClick={handleLogout} title="Cerrar sesión">
+              Salir
+            </button>
+          </div>
+        )}
         <div className="metrics-box">
           <strong>{metrics?.total_reviews ?? 0}</strong>
           <span>reviews totales</span>
@@ -93,50 +136,77 @@ function App() {
       </header>
 
       <section className="section-block">
-        <h2>Películas</h2>
-        <div className="cards-grid">
-          {movies.map((movie) => (
-            <article key={movie.id} className="movie-card">
-              {movie.imageUrl ? (
-                <img className="poster-image" src={movie.imageUrl} alt={movie.title} />
-              ) : (
-                <div className="poster">{movie.title?.[0] || 'F'}</div>
-              )}
-              <h3>{movie.title}</h3>
-              <p>{movie.description}</p>
-              <small>{movie.releaseDate}</small>
-            </article>
+        <div className="section-header">
+          <h2>Películas</h2>
+          <span className="count-badge">{filteredMovies.length} títulos</span>
+        </div>
+
+        {/* Barra de categorías/géneros */}
+        <div className="categories-bar" aria-label="Categorías de películas">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              className={`category-pill ${selectedCategory === cat ? 'is-active' : ''}`}
+              onClick={() => setSelectedCategory(cat)}
+            >
+              {cat}
+            </button>
           ))}
         </div>
-      </section>
 
-      <section className="section-block">
-        <h2>Reseñas</h2>
-        <div className="reviews-list">
-          {reviews.map((review) => (
-            <article key={review.id} className="review-card">
-              <div className="review-header">
-                <h3>{review.title}</h3>
-                <span className="rating">⭐ {review.rating}</span>
-              </div>
-              <p>{review.body}</p>
+        {/* Botón "Ver más" de la categoría actual - Solo para categorías específicas */}
+        {filteredMovies.length > 0 && selectedCategory !== 'Todas' && (
+          <div className="see-more-container">
+            <button
+              type="button"
+              className="see-more-button"
+              onClick={() => setCategoryModalOpen(true)}
+            >
+              Ver más en {selectedCategory}
+            </button>
+          </div>
+        )}
 
-              <div className="comment-box">
-                <strong>Comentarios ({(commentsByReview[review.id] || []).length})</strong>
-                {(commentsByReview[review.id] || []).length === 0 ? (
-                  <p className="comment-empty">Sin comentarios aún.</p>
+        <div className="cards-grid">
+          {filteredMovies.map((movie) => (
+            <article key={movie.id} className="movie-card" onClick={() => setSelectedMovie(movie)}>
+              <div className="poster-container">
+                {movie.imageUrl ? (
+                  <img className="poster-image" src={movie.imageUrl} alt={movie.title} />
                 ) : (
-                  <ul>
-                    {(commentsByReview[review.id] || []).map((comment) => (
-                      <li key={comment.id}>{comment.body}</li>
-                    ))}
-                  </ul>
+                  <div className="poster">{movie.title?.[0] || 'F'}</div>
+                )}
+                {movie.genre && (
+                  <span className="genre-badge">{movie.genre.split(',')[0]}</span>
                 )}
               </div>
+              <h3>{movie.title}</h3>
+              <p className="movie-description">{movie.description}</p>
+              <div className="movie-footer">
+                <small>{movie.releaseDate || 'Sin fecha'}</small>
+                {movie.genre && <span className="genre-subtag">{movie.genre}</span>}
+              </div>
             </article>
           ))}
         </div>
       </section>
+
+      {selectedMovie && (
+        <MovieModal
+          movie={selectedMovie}
+          sessionUser={sessionUser}
+          onClose={() => setSelectedMovie(null)}
+        />
+      )}
+
+      {categoryModalOpen && (
+        <CategoryModal
+          genre={selectedCategory}
+          onClose={() => setCategoryModalOpen(false)}
+          onMovieSelect={setSelectedMovie}
+        />
+      )}
 
       {metrics && (
         <section className="section-block mini-grid">
