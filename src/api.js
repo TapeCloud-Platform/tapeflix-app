@@ -24,6 +24,46 @@ export async function getMovies() {
   return request('/api/content?sourceApp=tapeflix');
 }
 
+export async function findContentByExternalId(externalId) {
+  const response = await fetch(
+    `${API_URL}/api/content/lookup?sourceApp=tapeflix&sourceType=movie&externalId=${encodeURIComponent(externalId)}`
+  );
+  if (response.status === 204) {
+    return null;
+  }
+  if (!response.ok) {
+    throw new Error('No se pudo buscar la película.');
+  }
+  return response.json();
+}
+
+/** Las películas del descubrimiento llegan de TMDb en vivo; hay que registrarlas para poder reseñarlas. */
+export async function registerContent(token, movie) {
+  const response = await fetch(`${API_URL}/api/content`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      sourceApp: 'tapeflix',
+      sourceType: 'movie',
+      externalId: String(movie.externalId ?? movie.id),
+      title: movie.title,
+      description: movie.description || '',
+      imageUrl: movie.imageUrl || '',
+      releaseDate: /^\d{4}-\d{2}-\d{2}$/.test(movie.releaseDate || '') ? movie.releaseDate : null,
+      genre: movie.genre || 'General',
+    }),
+  });
+
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(body.message || 'No se pudo registrar la película.');
+  }
+  return body;
+}
+
 export async function getReviews(contentId) {
   const token = localStorage.getItem('tapecloud_token');
   const headers = { 'Content-Type': 'application/json' };
