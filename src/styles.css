@@ -338,13 +338,13 @@ button, input, textarea {
 }
 
 .app-switcher__logo {
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
 }
 
 .app-switcher__panel {
-  min-width: 220px;
+  min-width: 240px;
   padding: 8px;
 }
 
@@ -359,7 +359,7 @@ button, input, textarea {
 .app-switcher__item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   padding: 9px 8px;
   border-radius: 10px;
   color: var(--ink);
@@ -380,8 +380,11 @@ a.app-switcher__item:hover {
 }
 
 .app-switcher__item img {
-  width: 26px;
-  height: 26px;
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-bg);
   object-fit: contain;
   flex-shrink: 0;
 }
