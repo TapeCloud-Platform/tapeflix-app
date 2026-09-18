@@ -1,107 +1,52 @@
-import { useState } from 'react';
 import MovieCard from './MovieCard';
-import CategoryModal from './CategoryModal';
 
-export default function CatalogPage({ movies, reviews, metrics, sessionUser, onLogout }) {
-  const [selectedCategory, setSelectedCategory] = useState('Todas');
-  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+export default function CatalogPage({
+  items,
+  reviews,
+  loading,
+  error,
+  activeFilter,
+  active,
+  onClearFilters,
+}) {
+  const isFiltered = active.type !== 'top';
+  const activeLabel = activeFilter?.options?.find((option) => option.value === active.value)?.label
+    ?? active.value;
 
-  // Extrae todas las categorías únicas
-  const categories = ['Todas', ...Array.from(
-    new Set(
-      movies
-        .flatMap((m) => (m.genre ? m.genre.split(',').map((g) => g.trim()) : []))
-        .filter(Boolean)
-    )
-  ).sort()];
-
-  // Filtra películas por categoría
-  const filteredMovies = selectedCategory === 'Todas'
-    ? movies
-      .sort((a, b) => (b.voteAverage || b.vote_average || 0) - (a.voteAverage || a.vote_average || 0))
-      .slice(0, 15)
-    : movies.filter((m) => m.genre && m.genre.toLowerCase().includes(selectedCategory.toLowerCase()));
+  // MovieCard y la ruta de detalle esperan la forma del catálogo, no la del discovery.
+  const movies = items.map((item) => ({
+    ...item,
+    id: item.externalId,
+    releaseDate: item.subtitle,
+  }));
 
   return (
-    <div className="app-shell">
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">TapeFlix</p>
-          <h1>Catálogo y reseñas</h1>
-        </div>
-        <a className="back-to-portal" href="http://localhost:5173">
-          Volver al portal
-        </a>
-        {sessionUser && (
-          <div className="session-container">
-            <span className="session-badge">Sesión: {sessionUser.displayName}</span>
-            <button
-              type="button"
-              className="logout-button-small"
-              onClick={onLogout}
-              title="Cerrar sesión"
-            >
-              Salir
-            </button>
-          </div>
-        )}
-        <div className="metrics-box">
-          <strong>{metrics?.total_reviews ?? 0}</strong>
-          <span>reviews totales</span>
-        </div>
-      </header>
-
+    <main className="app-main">
       <section className="section-block">
         <div className="section-header">
-          <h2>Películas</h2>
-          <span className="count-badge">{filteredMovies.length} títulos</span>
+          <h2>{activeFilter?.label ?? 'Contenido'}</h2>
+          {!loading && <span className="count-badge">{movies.length} resultados</span>}
+
+          {isFiltered && (
+            <button type="button" className="active-filter-chip" onClick={onClearFilters}>
+              {activeLabel}
+              <span aria-hidden="true">✕</span>
+            </button>
+          )}
         </div>
 
-        {/* Barra de categorías/géneros */}
-        <div className="categories-bar" aria-label="Categorías de películas">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              className={`category-pill ${selectedCategory === cat ? 'is-active' : ''}`}
-              onClick={() => setSelectedCategory(cat)}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+        {error && <p className="error">{error}</p>}
 
-        {/* Botón "Ver más" - Solo para categorías específicas */}
-        {filteredMovies.length > 0 && selectedCategory !== 'Todas' && (
-          <div className="see-more-container">
-            <button
-              type="button"
-              className="see-more-button"
-              onClick={() => setCategoryModalOpen(true)}
-            >
-              Ver más en {selectedCategory}
-            </button>
+        {loading ? (
+          <p className="loading-text">Cargando...</p>
+        ) : (
+          <div className="cards-grid">
+            {movies.map((movie) => (
+              <MovieCard key={movie.id} movie={movie} reviews={reviews} />
+            ))}
           </div>
         )}
-
-        {/* Grid de películas */}
-        <div className="cards-grid">
-          {filteredMovies.map((movie) => (
-            <MovieCard key={movie.id} movie={movie} reviews={reviews} />
-          ))}
-        </div>
       </section>
-
-      {/* Modal de categoría */}
-      {categoryModalOpen && (
-        <CategoryModal
-          genre={selectedCategory}
-          onClose={() => setCategoryModalOpen(false)}
-          onMovieSelect={() => {
-            setCategoryModalOpen(false);
-          }}
-        />
-      )}
-    </div>
+    </main>
   );
 }

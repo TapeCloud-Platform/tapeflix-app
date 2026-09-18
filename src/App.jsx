@@ -1,8 +1,21 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { getMovies, getReviews, getComments, getProfileMetrics } from './api';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+} from 'react-router-dom';
+import AppHeader from './components/AppHeader';
+import CategoryDrawer from './components/CategoryDrawer';
 import CatalogPage from './components/CatalogPage';
 import MovieDetailPage from './components/MovieDetailPage';
+import { getReviews } from './api';
+import { discover, getFilters } from './discoverApi';
+
+const SOURCE_APP = 'tapeflix';
+const PORTAL_URL = 'http://localhost:5173';
+const RESULT_LIMIT = 30;
 
 function consumeSsoParams() {
   const params = new URLSearchParams(window.location.search);
@@ -37,108 +50,120 @@ function getSessionUser() {
   };
 }
 
-function App() {
-  const [movies, setMovies] = useState([]);
+/** El header y el drawer viven fuera de las rutas para no desaparecer en el detalle. */
+function AppShell({ sessionUser, onLogout }) {
+  const navigate = useNavigate();
+  const [filters, setFilters] = useState([]);
+  const [active, setActive] = useState({ type: 'top', value: '' });
+  const [items, setItems] = useState([]);
   const [reviews, setReviews] = useState([]);
-  const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [sessionUser, setSessionUser] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    consumeSsoParams();
-    setSessionUser(getSessionUser());
+    getFilters(SOURCE_APP).then(setFilters).catch(() => setFilters([]));
+    getReviews().then(setReviews).catch(() => setReviews([]));
+  }, []);
 
-    async function loadData() {
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
       try {
         setLoading(true);
-        const movieData = await getMovies();
-        setMovies(movieData || []);
-
-        const [reviewData, profileData] = await Promise.all([
-          getReviews().catch(() => []),
-          getProfileMetrics(1).catch(() => null),
-        ]);
-        setReviews(reviewData || []);
-        setMetrics(profileData);
+        setError('');
+        const data = await discover(SOURCE_APP, { ...active, limit: RESULT_LIMIT });
+        if (!cancelled) {
+          setItems(data || []);
+        }
       } catch (err) {
-        setError(err.message || 'No se pudo cargar la información de TapeFlix.');
+        if (!cancelled) {
+          setError(err.message || 'No se pudo cargar el contenido.');
+          setItems([]);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
-    loadData();
-  }, []);
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [active]);
 
-  if (loading) {
-    return <div className="app-shell"><h1>Loading TapeFlix...</h1></div>;
+  // Filtrar desde el detalle debe devolver al catálogo para ver los resultados.
+  function applyFilter(filter) {
+    setActive(filter);
+    navigate('/catalog');
   }
 
-  if (error) {
-    return <div className="app-shell"><h1>TapeFlix</h1><p className="error">{error}</p></div>;
-  }
+  const activeFilter = filters.find((filter) => filter.type === active.type);
 
   return (
-    <Router>
+    <div className="app-shell">
+      <AppHeader
+        appName="TapeFlix"
+        tagline="Películas y reseñas"
+        portalUrl={PORTAL_URL}
+        sessionUser={sessionUser}
+        onLogout={onLogout}
+        onSearch={(query) => applyFilter({ type: 'search', value: query })}
+        onOpenMenu={() => setMenuOpen(true)}
+        onHome={() => applyFilter({ type: 'top', value: '' })}
+      />
+
+      <CategoryDrawer
+        open={menuOpen}
+        filters={filters}
+        active={active}
+        onApply={applyFilter}
+        onClose={() => setMenuOpen(false)}
+      />
+
       <Routes>
         <Route
           path="/catalog"
           element={
             <CatalogPage
-              movies={movies}
+              items={items}
               reviews={reviews}
-              metrics={metrics}
-              sessionUser={sessionUser}
-              onLogout={() => {
-                localStorage.removeItem('tapecloud_token');
-                localStorage.removeItem('tapecloud_email');
-                localStorage.removeItem('tapecloud_display_name');
-                setSessionUser(null);
-              }}
+              loading={loading}
+              error={error}
+              activeFilter={activeFilter}
+              active={active}
+              onClearFilters={() => applyFilter({ type: 'top', value: '' })}
             />
           }
         />
         <Route path="/movie/:movieId" element={<MovieDetailPage sessionUser={sessionUser} />} />
         <Route path="/" element={<Navigate to="/catalog" replace />} />
       </Routes>
-    </Router>
-  );
-}
-
-export default App;
-      )}
-
-      {categoryModalOpen && (
-        <CategoryModal
-          genre={selectedCategory}
-          onClose={() => setCategoryModalOpen(false)}
-          onMovieSelect={setSelectedMovie}
-        />
-      )}
-
-      {metrics && (
-        <section className="section-block mini-grid">
-          <div className="metric-card">
-            <span>tf_reviews</span>
-            <strong>{metrics.tf_reviews ?? 0}</strong>
-          </div>
-          <div className="metric-card">
-            <span>tb_reviews</span>
-            <strong>{metrics.tb_reviews ?? 0}</strong>
-          </div>
-          <div className="metric-card">
-            <span>tf_comment_count</span>
-            <strong>{metrics.tf_comment_count ?? 0}</strong>
-          </div>
-          <div className="metric-card">
-            <span>tb_comment_count</span>
-            <strong>{metrics.tb_comment_count ?? 0}</strong>
-          </div>
-        </section>
-      )}
     </div>
   );
 }
 
-export default App;
+export default function App() {
+  const [sessionUser, setSessionUser] = useState(null);
+
+  useEffect(() => {
+    consumeSsoParams();
+    setSessionUser(getSessionUser());
+  }, []);
+
+  function handleLogout() {
+    localStorage.removeItem('tapecloud_token');
+    localStorage.removeItem('tapecloud_email');
+    localStorage.removeItem('tapecloud_display_name');
+    setSessionUser(null);
+  }
+
+  return (
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <AppShell sessionUser={sessionUser} onLogout={handleLogout} />
+    </Router>
+  );
+}
