@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Button, TextField, TextArea, Input, Label } from '@heroui/react';
 import {
   findContentByExternalId,
   registerContent,
@@ -11,8 +12,11 @@ import {
   createComment,
   deleteComment,
 } from '../api';
+import StarRating from './StarRating';
+import AlreadyReviewedDialog from './AlreadyReviewedDialog';
+import { formatFullDate, formatYear } from '../utils/format';
 
-export default function MovieDetailPage({ sessionUser }) {
+export default function MovieDetailPage({ sessionUser, onLoginClick }) {
   const { movieId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,11 +29,23 @@ export default function MovieDetailPage({ sessionUser }) {
   const [commentDraft, setCommentDraft] = useState('');
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
-  const [form, setForm] = useState({ title: '', body: '', rating: '5' });
+  const [form, setForm] = useState({ title: '', body: '', rating: 5 });
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
+  const [showAlreadyReviewed, setShowAlreadyReviewed] = useState(false);
 
   const token = localStorage.getItem('tapecloud_token');
+  const hasOwnReview = Boolean(
+    sessionUser && reviews.some((review) => review.authorEmail === sessionUser.email)
+  );
+
+  function handleAddReviewClick() {
+    if (hasOwnReview) {
+      setShowAlreadyReviewed(true);
+      return;
+    }
+    setFormOpen(true);
+  }
 
   const loadReviews = useCallback(async (id) => {
     const data = await getReviews(id).catch(() => []);
@@ -83,9 +99,9 @@ export default function MovieDetailPage({ sessionUser }) {
       await createReview(targetId, token, {
         title: form.title,
         body: form.body,
-        rating: Number(form.rating),
+        rating: form.rating,
       });
-      setForm({ title: '', body: '', rating: '5' });
+      setForm({ title: '', body: '', rating: 5 });
       setFormOpen(false);
       setFormSuccess('Reseña publicada.');
       await loadReviews(targetId);
@@ -181,8 +197,11 @@ export default function MovieDetailPage({ sessionUser }) {
   }
 
   const averageRating = reviews.length
-    ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
-    : null;
+    ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length
+    : 0;
+
+  const releaseDate = movie.releaseDate || movie.subtitle;
+  const genres = (movie.genre || '').split(',').map((g) => g.trim()).filter(Boolean);
 
   return (
     <main className="app-main">
@@ -202,120 +221,66 @@ export default function MovieDetailPage({ sessionUser }) {
       </header>
 
       <section className="detail-page">
-        <div className="detail-hero">
-          {movie.imageUrl && (
-            <img className="detail-poster" src={movie.imageUrl} alt={movie.title} />
-          )}
+        <div
+          className="movie-backdrop"
+          style={movie.imageUrl ? { backgroundImage: `url(${movie.imageUrl})` } : undefined}
+        >
+          <div className="movie-backdrop__scrim" />
 
-          <div className="detail-info">
-            <div className="detail-stats">
-              {movie.releaseDate && <span className="stat-pill">{movie.releaseDate}</span>}
-              {averageRating && (
-                <span className="stat-pill rating">
-                  ⭐ {averageRating}/5 · {reviews.length} reseñas
-                </span>
-              )}
-              {movie.genre && <span className="stat-pill">{movie.genre}</span>}
-            </div>
-
-            {movie.description && (
-              <div className="detail-biography">
-                <p>{movie.description}</p>
-              </div>
+          <div className="detail-hero movie-backdrop__content">
+            {movie.imageUrl && (
+              <img className="detail-poster movie-poster" src={movie.imageUrl} alt={movie.title} />
             )}
+
+            <div className="detail-info">
+              {genres.length > 0 && (
+                <div className="movie-genre-chips">
+                  {genres.map((genre) => (
+                    <span key={genre} className="movie-genre-chip">{genre}</span>
+                  ))}
+                </div>
+              )}
+
+              <div className="detail-stats">
+                {reviews.length > 0 && (
+                  <span className="stat-pill rating movie-rating-pill">
+                    <StarRating value={averageRating} size="sm" />
+                    {averageRating.toFixed(1)}/5 · {reviews.length} reseñas
+                  </span>
+                )}
+                {formatFullDate(releaseDate) && (
+                  <span className="stat-pill">📅 {formatFullDate(releaseDate)}</span>
+                )}
+                {!formatFullDate(releaseDate) && formatYear(releaseDate) && (
+                  <span className="stat-pill">{formatYear(releaseDate)}</span>
+                )}
+              </div>
+
+              {movie.description && (
+                <div className="detail-biography">
+                  <p>{movie.description}</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         <div className="detail-reviews-section">
           <h2>Reseñas y comentarios</h2>
 
-          {!sessionUser && (
-            <div className="login-notice flex-between">
-              <span>Iniciá sesión para dejar tu reseña.</span>
-              <a className="inline-login-btn" href="http://localhost:5173">
-                Iniciar sesión
-              </a>
-            </div>
-          )}
-
-          {sessionUser && !formOpen && (
-            <button type="button" className="add-review-button" onClick={() => setFormOpen(true)}>
-              + Agregar reseña
-            </button>
-          )}
-
-          {formSuccess && <p className="success-text">{formSuccess}</p>}
-
-          {sessionUser && formOpen && (
-            <form className="review-form" onSubmit={handleSubmitReview}>
-              {formError && <p className="error-text">{formError}</p>}
-
-              <div className="review-form-row">
-                <label className="review-field flex-1">
-                  Título
-                  <input
-                    type="text"
-                    maxLength={200}
-                    value={form.title}
-                    onChange={(event) => setForm({ ...form, title: event.target.value })}
-                    required
-                  />
-                </label>
-
-                <label className="review-field width-auto">
-                  Puntuación
-                  <select
-                    value={form.rating}
-                    onChange={(event) => setForm({ ...form, rating: event.target.value })}
-                  >
-                    {[5, 4, 3, 2, 1].map((value) => (
-                      <option key={value} value={value}>
-                        {value} ★
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-
-              <label className="review-field">
-                Tu opinión
-                <textarea
-                  rows={4}
-                  maxLength={4000}
-                  value={form.body}
-                  onChange={(event) => setForm({ ...form, body: event.target.value })}
-                  required
-                />
-              </label>
-
-              <div className="review-form-actions">
-                <button type="submit" className="submit-review-btn">
-                  Publicar reseña
-                </button>
-                <button
-                  type="button"
-                  className="logout-button-small"
-                  onClick={() => {
-                    setFormOpen(false);
-                    setFormError('');
-                  }}
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          )}
-
-          {reviews.length === 0 ? (
-            <p className="no-reviews">No hay reseñas para esta película aún.</p>
-          ) : (
-            <div className="modal-reviews-list">
-              {reviews.map((review) => (
+          <div className="review-panel">
+            <div className="review-panel__list">
+              {formError && !formOpen && <p className="error-text">{formError}</p>}
+              {reviews.length === 0 ? (
+                <p className="no-reviews">No hay reseñas para esta película aún.</p>
+              ) : (
+                <div className="modal-reviews-list">
+                  {reviews.map((review) => (
                 <article key={review.id} className="review-card">
                   <div className="review-header">
                     <strong>{review.title}</strong>
                     <div className="modal-review-actions">
-                      <span className="review-rating">⭐ {review.rating}/5</span>
+                      <StarRating value={review.rating} size="sm" />
                       {sessionUser?.email === review.authorEmail && (
                         <button
                           type="button"
@@ -398,11 +363,87 @@ export default function MovieDetailPage({ sessionUser }) {
                     </div>
                   )}
                 </article>
-              ))}
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+
+            <aside className="review-panel__form">
+              {!sessionUser ? (
+                <div className="login-notice">
+                  <span>Iniciá sesión para dejar tu reseña.</span>
+                  <button type="button" className="inline-login-btn" onClick={onLoginClick}>
+                    Iniciar sesión
+                  </button>
+                </div>
+              ) : (
+                <div className="review-form-card">
+                  <h3>Dejá tu reseña</h3>
+
+                  {formSuccess && <p className="success-text">{formSuccess}</p>}
+
+                  {!formOpen ? (
+                    <Button variant="primary" fullWidth onClick={handleAddReviewClick}>
+                      + Agregar reseña
+                    </Button>
+                  ) : (
+                    <form className="review-form" onSubmit={handleSubmitReview}>
+                      {formError && <p className="error-text">{formError}</p>}
+
+                      <TextField
+                        className="review-field"
+                        value={form.title}
+                        onChange={(title) => setForm({ ...form, title })}
+                        isRequired
+                      >
+                        <Label>Título</Label>
+                        <Input placeholder="Un resumen breve" maxLength={200} />
+                      </TextField>
+
+                      <div className="review-field">
+                        <span>Puntuación</span>
+                        <StarRating
+                          value={form.rating}
+                          onChange={(rating) => setForm({ ...form, rating })}
+                          size="lg"
+                        />
+                      </div>
+
+                      <TextField
+                        className="review-field"
+                        value={form.body}
+                        onChange={(body) => setForm({ ...form, body })}
+                        isRequired
+                      >
+                        <Label>Tu opinión</Label>
+                        <TextArea rows={5} maxLength={4000} placeholder="¿Qué te pareció?" />
+                      </TextField>
+
+                      <div className="review-form-actions">
+                        <Button type="submit" variant="primary">
+                          Publicar reseña
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            setFormOpen(false);
+                            setFormError('');
+                          }}
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )}
+            </aside>
+          </div>
         </div>
       </section>
+
+      <AlreadyReviewedDialog isOpen={showAlreadyReviewed} onClose={() => setShowAlreadyReviewed(false)} />
     </main>
   );
 }
