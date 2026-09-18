@@ -35,9 +35,7 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
   const [showAlreadyReviewed, setShowAlreadyReviewed] = useState(false);
 
   const token = localStorage.getItem('tapecloud_token');
-  const hasOwnReview = Boolean(
-    sessionUser && reviews.some((review) => review.authorEmail === sessionUser.email)
-  );
+  const hasOwnReview = Boolean(sessionUser && reviews.some((review) => review.ownedByCurrentUser));
 
   function handleAddReviewClick() {
     if (hasOwnReview) {
@@ -281,7 +279,7 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                     <strong>{review.title}</strong>
                     <div className="modal-review-actions">
                       <StarRating value={review.rating} size="sm" />
-                      {sessionUser?.email === review.authorEmail && (
+                      {review.ownedByCurrentUser && (
                         <button
                           type="button"
                           className="delete-review-btn"
@@ -296,7 +294,7 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
 
                   <p className="review-body">{review.body}</p>
                   <small className="review-author">
-                    Por: {review.authorDisplayName || review.authorEmail || 'Anónimo'}
+                    Por: {review.authorDisplayName || 'Anónimo'}
                   </small>
 
                   <div className="review-interaction-bar">
@@ -324,9 +322,9 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                           <div key={comment.id} className="comment-item">
                             <div className="comment-item-header">
                               <strong>
-                                {comment.authorDisplayName || comment.authorEmail || 'Anónimo'}
+                                {comment.authorDisplayName || 'Anónimo'}
                               </strong>
-                              {sessionUser?.email === comment.authorEmail && (
+                              {comment.ownedByCurrentUser && (
                                 <button
                                   type="button"
                                   className="delete-comment-btn"
