@@ -1,40 +1,53 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Card, Chip } from '@heroui/react';
+import { formatYear } from '../utils/format';
 
-export default function MovieCard({ movie, reviews }) {
+export default function MovieCard({ movie, variant }) {
   const [showPreview, setShowPreview] = useState(false);
   const navigate = useNavigate();
 
-  // Obtener la primera reseña (preview) de la película
-  const movieReview = reviews.find((r) => r.movieId === movie.id);
-  const previewText = movieReview?.body?.substring(0, 120) || 'Sin reseñas disponibles';
-
   function handleClick() {
-    navigate(`/movie/${movie.id}`, { state: { movie, review: movieReview } });
+    navigate(`/movie/${encodeURIComponent(movie.id)}`, { state: { movie } });
   }
 
+  const year = formatYear(movie.releaseDate);
+  const mainGenre = movie.genre?.split(',')[0]?.trim();
+
   return (
-    <article
-      className="movie-card"
+    <Card
+      variant="transparent"
+      className={`movie-card${variant ? ` movie-card--${variant}` : ''}`}
       onClick={handleClick}
       onMouseEnter={() => setShowPreview(true)}
       onMouseLeave={() => setShowPreview(false)}
       role="button"
-      tabIndex="0"
-      onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+      tabIndex={0}
+      onKeyDown={(event) => event.key === 'Enter' && handleClick()}
     >
-      <div className="poster-container">
+      <div className="poster-container cover-container">
         {movie.imageUrl ? (
           <img className="poster-image" src={movie.imageUrl} alt={movie.title} />
         ) : (
-          <div className="poster">{movie.title?.[0] || 'F'}</div>
+          <div className="poster">{movie.title?.[0] || '🎬'}</div>
         )}
-        {movie.genre && <span className="genre-badge">{movie.genre.split(',')[0]}</span>}
 
-        {/* Preview al hover */}
+        {mainGenre && <Chip size="sm" variant="soft" className="movie-card__genre-chip">{mainGenre}</Chip>}
+
         {showPreview && (
           <div className="preview-overlay">
-            <p className="preview-text">{previewText}...</p>
+            <dl className="preview-facts">
+              <div className="preview-fact">
+                <dt>Estreno</dt>
+                <dd>{year || 'Desconocido'}</dd>
+              </div>
+              {movie.genre && (
+                <div className="preview-fact">
+                  <dt>Género</dt>
+                  <dd>{movie.genre}</dd>
+                </div>
+              )}
+            </dl>
             <span className="click-hint">Ver más</span>
           </div>
         )}
@@ -42,13 +55,8 @@ export default function MovieCard({ movie, reviews }) {
 
       <h3>{movie.title}</h3>
       <div className="movie-footer">
-        <small>{movie.releaseDate || 'Sin fecha'}</small>
-        {movie.voteAverage || movie.vote_average ? (
-          <span className="rating-badge">
-            ⭐ {(movie.voteAverage || movie.vote_average).toFixed(1)}
-          </span>
-        ) : null}
+        <small>{year || 'Fecha desconocida'}</small>
       </div>
-    </article>
+    </Card>
   );
 }
