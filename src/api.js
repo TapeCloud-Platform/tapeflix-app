@@ -246,3 +246,20 @@ export async function logout(token) {
   return authedRequest('/api/auth/logout', 'POST', token);
 }
 
+/**
+ * Valida la sesión contra el backend. Devuelve false solo con 401 (token
+ * revocado: logout desde otra app, cambio de contraseña, etc). Con error de
+ * red se asume válida para no cerrar sesiones por estar offline.
+ */
+export async function checkSession(token) {
+  let response;
+  try {
+    response = await fetch(`${API_URL}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    return true;
+  }
+  return response.status !== 401;
+}
+

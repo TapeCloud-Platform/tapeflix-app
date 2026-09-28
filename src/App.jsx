@@ -14,7 +14,7 @@ import AuthModal from './components/AuthModal';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import { discover, getFilters } from './discoverApi';
-import { logout } from './api';
+import { checkSession, logout } from './api';
 import { useTheme } from './utils/theme';
 import { broadcastLogout, syncSessionToPortal } from './sso';
 
@@ -203,6 +203,35 @@ export default function App() {
   });
   const [theme, setTheme] = useTheme();
   const [authView, setAuthView] = useState(null);
+
+  useEffect(() => {
+    // La limpieza por iframe puede no llegar (los navegadores particionan el
+    // storage de iframes de terceros): al mostrar la app se revalida el token
+    // contra el backend y un 401 limpia la sesión local.
+    let cancelled = false;
+    async function validateSession() {
+      const token = localStorage.getItem('tapecloud_token');
+      if (!token) {
+        return;
+      }
+      const valid = await checkSession(token);
+      if (!valid && !cancelled) {
+        localStorage.removeItem('tapecloud_token');
+        localStorage.removeItem('tapecloud_email');
+        localStorage.removeItem('tapecloud_display_name');
+        localStorage.removeItem('tapecloud_avatar');
+        setSessionUser(null);
+      }
+    }
+    validateSession();
+    window.addEventListener('focus', validateSession);
+    window.addEventListener('pageshow', validateSession);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('focus', validateSession);
+      window.removeEventListener('pageshow', validateSession);
+    };
+  }, []);
 
   useEffect(() => {
     // Si el navegador restaura esta página desde el bfcache (botón "atrás" al
