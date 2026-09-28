@@ -233,10 +233,6 @@ async function authedRequest(path, method, token, payload) {
   return body;
 }
 
-export async function updateAvatar(token, avatarDataUri) {
-  return authedRequest('/api/auth/me/avatar', 'PATCH', token, { avatarDataUri });
-}
-
 export async function getMyReviewStats(token) {
   return authedRequest('/api/reviews/me/stats', 'GET', token);
 }

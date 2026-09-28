@@ -11,7 +11,6 @@ export default function AppHeader({
   portalUrl,
   sessionUser,
   onLogout,
-  onAvatarChange,
   onLoginClick,
   onSearch,
   onSearchPreview,
@@ -53,6 +52,15 @@ export default function AppHeader({
   return (
     <header className="app-header">
       <div className="app-header__bar">
+        <SettingsMenu
+          sessionUser={sessionUser}
+          onLogout={onLogout}
+          onLoginClick={onLoginClick}
+          theme={theme}
+          onThemeChange={onThemeChange}
+          portalUrl={portalUrl}
+        />
+
         <button type="button" className="app-header__brand" onClick={onHome} aria-label="Volver al inicio">
           <div>
             <h1 className="app-header__title">{appName}</h1>
@@ -115,16 +123,6 @@ export default function AppHeader({
               <line x1="16.5" y1="16.5" x2="21" y2="21" strokeLinecap="round" />
             </svg>
           </Button>
-
-          <SettingsMenu
-            sessionUser={sessionUser}
-            onLogout={onLogout}
-            onAvatarChange={onAvatarChange}
-            onLoginClick={onLoginClick}
-            theme={theme}
-            onThemeChange={onThemeChange}
-            portalUrl={portalUrl}
-          />
 
           <Button
             isIconOnly

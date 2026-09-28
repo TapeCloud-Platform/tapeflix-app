@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dropdown } from '@heroui/react';
-import { getMyReviewStats, updateAvatar } from '../api';
-import { resizeImageToDataUri } from '../avatar';
+import { getMyReviewStats } from '../api';
 import ConfirmDialog from './ConfirmDialog';
 
 /** Menú de cuenta con el mismo lenguaje que el portal (secciones 01/02). */
@@ -11,10 +10,8 @@ export default function SettingsMenu({
   theme,
   onThemeChange,
   portalUrl,
-  onAvatarChange,
   onLoginClick,
 }) {
-  const fileInputRef = useRef(null);
   const token = sessionUser ? localStorage.getItem('tapecloud_token') : null;
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -25,9 +22,6 @@ export default function SettingsMenu({
   const [stats, setStats] = useState(null);
   const [statsError, setStatsError] = useState('');
   const [loadingStats, setLoadingStats] = useState(false);
-
-  const [avatarUploading, setAvatarUploading] = useState(false);
-  const [avatarError, setAvatarError] = useState('');
 
   const initial = sessionUser?.displayName?.[0]?.toUpperCase() || '?';
 
@@ -47,38 +41,6 @@ export default function SettingsMenu({
       .finally(() => setLoadingStats(false));
   }, [reviewsOpen, sessionUser, stats, statsError, loadingStats, token]);
 
-  async function handleAvatarPick(event) {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) {
-      return;
-    }
-    setAvatarError('');
-    setAvatarUploading(true);
-    try {
-      const dataUri = await resizeImageToDataUri(file);
-      const response = await updateAvatar(token, dataUri);
-      onAvatarChange(response.avatarDataUri);
-    } catch (err) {
-      setAvatarError(err.message || 'No se pudo actualizar la foto de perfil.');
-    } finally {
-      setAvatarUploading(false);
-    }
-  }
-
-  async function handleAvatarRemove() {
-    setAvatarError('');
-    setAvatarUploading(true);
-    try {
-      await updateAvatar(token, null);
-      onAvatarChange(null);
-    } catch (err) {
-      setAvatarError(err.message || 'No se pudo quitar la foto de perfil.');
-    } finally {
-      setAvatarUploading(false);
-    }
-  }
-
   function handleLogoutRequest() {
     setMenuOpen(false);
     setConfirmLogoutOpen(true);
@@ -91,17 +53,6 @@ export default function SettingsMenu({
 
   return (
     <>
-      {/* Fuera del Dropdown: si el diálogo nativo de archivos abre dentro del
-          popover, se desmonta al perder foco y el onChange nunca llega a
-          dispararse. */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="account-menu__file-input"
-        onChange={handleAvatarPick}
-      />
-
       <Dropdown.Root isOpen={menuOpen} onOpenChange={setMenuOpen}>
         <Dropdown.Trigger className="account-menu__trigger" aria-label="Cuenta de usuario">
           {sessionUser?.avatarDataUri ? (
@@ -111,7 +62,7 @@ export default function SettingsMenu({
           )}
         </Dropdown.Trigger>
 
-        <Dropdown.Popover className="account-menu__panel" placement="bottom end" offset={10}>
+        <Dropdown.Popover className="account-menu__panel" placement="bottom start" offset={10}>
           {/* ---- Sección Usuario ---- */}
           <p className="account-menu__section-title">Usuario</p>
 
@@ -132,27 +83,13 @@ export default function SettingsMenu({
           </div>
 
           {sessionUser && (
-            <div className="account-menu__avatar-actions">
-              <button
-                type="button"
-                className="settings-menu__item"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={avatarUploading}
-              >
-                {avatarUploading ? 'Subiendo...' : 'Cambiar foto de perfil'}
-              </button>
-              {sessionUser.avatarDataUri && (
-                <button
-                  type="button"
-                  className="settings-menu__item"
-                  onClick={handleAvatarRemove}
-                  disabled={avatarUploading}
-                >
-                  Quitar foto
-                </button>
-              )}
-              {avatarError && <p className="error">{avatarError}</p>}
-            </div>
+            <>
+              <p className="settings-menu__hint">Gestioná tu foto y tus datos desde el portal de TapeCloud.</p>
+              <a className="settings-menu__item" href={portalUrl}>
+                Gestionar perfil en TapeCloud
+                <span aria-hidden="true">→</span>
+              </a>
+            </>
           )}
 
           {sessionUser && (

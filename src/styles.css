@@ -771,7 +771,7 @@ h1, h2, h3, p {
 .account-menu__panel {
   counter-reset: account-section;
   position: relative;
-  width: 340px;
+  width: min(340px, calc(100vw - 32px));
   max-height: min(80vh, 640px);
   overflow-y: auto;
   padding: 20px;
@@ -901,16 +901,6 @@ h1, h2, h3, p {
   margin-top: 18px;
   padding-top: 14px;
   border-top: 1px solid var(--border-soft);
-}
-
-.account-menu__avatar-actions {
-  display: flex;
-  flex-direction: column;
-  margin-top: 4px;
-}
-
-.account-menu__file-input {
-  display: none;
 }
 
 .account-menu__guest-cta {
@@ -2424,5 +2414,27 @@ h1, h2, h3, p {
   }
   50% {
     opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-header__tagline {
+    display: none;
+  }
+
+  .app-header__title {
+    font-size: 1.05rem;
+  }
+
+  .app-header__bar,
+  .app-header__actions {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 380px) {
+  .otp-input__cell {
+    width: 40px;
+    height: 50px;
   }
 }
