@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button, TextField, Input, Label } from '@heroui/react';
 import { register, resendVerificationCode, verifyEmail } from '../api';
 import LoadingIcon from './LoadingIcon';
+import VerificationCodeInput from './VerificationCodeInput';
 
 export default function RegisterPage({ onSuccess, onGoToLogin }) {
   const [email, setEmail] = useState('');
@@ -38,6 +39,10 @@ export default function RegisterPage({ onSuccess, onGoToLogin }) {
   async function handleVerify(event) {
     event.preventDefault();
     setError('');
+    if (code.length !== 6) {
+      setError('Ingresá el código de 6 dígitos.');
+      return;
+    }
     setLoading(true);
     try {
       const response = await verifyEmail(pendingEmail, code);
@@ -70,10 +75,7 @@ export default function RegisterPage({ onSuccess, onGoToLogin }) {
         <p className="auth-hint">Ingresá el código de 6 dígitos que enviamos a {pendingEmail}.</p>
 
         <form className="login-form" onSubmit={handleVerify}>
-          <TextField className="auth-field" value={code} onChange={setCode} isRequired>
-            <Label>Código de verificación</Label>
-            <Input inputMode="numeric" placeholder="123456" maxLength={6} autoFocus />
-          </TextField>
+          <VerificationCodeInput value={code} onChange={setCode} disabled={loading} />
 
           {error && <p className="error">{error}</p>}
           {info && <p className="auth-hint">{info}</p>}
