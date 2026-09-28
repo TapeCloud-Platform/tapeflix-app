@@ -27,6 +27,10 @@ export default function LoginPage({ onSuccess, onGoToRegister }) {
     event.preventDefault();
     setError('');
     setInfo('');
+    if (needsTotp && totpCode.length !== 6) {
+      setError('Ingresá el código de 6 dígitos de tu app de autenticación.');
+      return;
+    }
     setLoading(true);
     try {
       const response = await login(identifier, password, needsTotp ? totpCode : undefined);
@@ -167,10 +171,7 @@ export default function LoginPage({ onSuccess, onGoToRegister }) {
         )}
 
         {needsTotp && (
-          <TextField className="auth-field" value={totpCode} onChange={setTotpCode} isRequired>
-            <Label>Código de verificación</Label>
-            <Input inputMode="numeric" placeholder="123456" maxLength={6} autoFocus />
-          </TextField>
+          <VerificationCodeInput value={totpCode} onChange={setTotpCode} disabled={loading} />
         )}
 
         {error && <p className="error">{error}</p>}

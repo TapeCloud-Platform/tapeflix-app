@@ -1504,6 +1504,36 @@ h1, h2, h3, p {
   opacity: 0.6;
 }
 
+/* Escudo verde de éxito y celebración con confeti */
+.success-check {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  margin: 6px auto 4px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--brand-gradient);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+}
+
+.celebration {
+  text-align: center;
+}
+
+.celebration .auth-hint {
+  margin-bottom: 18px;
+}
+
+.confetti-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2000;
+}
+
 /* Detalle */
 .detail-topbar {
   align-items: center;

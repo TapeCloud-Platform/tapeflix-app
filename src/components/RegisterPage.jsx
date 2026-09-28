@@ -3,6 +3,7 @@ import { Button, TextField, Input, Label } from '@heroui/react';
 import { register, resendVerificationCode, verifyEmail } from '../api';
 import LoadingIcon from './LoadingIcon';
 import VerificationCodeInput from './VerificationCodeInput';
+import Confetti from './Confetti';
 
 export default function RegisterPage({ onSuccess, onGoToLogin }) {
   const [email, setEmail] = useState('');
@@ -14,6 +15,7 @@ export default function RegisterPage({ onSuccess, onGoToLogin }) {
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
   const [pendingEmail, setPendingEmail] = useState('');
+  const [createdResponse, setCreatedResponse] = useState(null);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -46,7 +48,7 @@ export default function RegisterPage({ onSuccess, onGoToLogin }) {
     setLoading(true);
     try {
       const response = await verifyEmail(pendingEmail, code);
-      onSuccess(response);
+      setCreatedResponse(response);
     } catch (err) {
       setError(err.message || 'No se pudo verificar el código.');
     } finally {
@@ -66,6 +68,26 @@ export default function RegisterPage({ onSuccess, onGoToLogin }) {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (createdResponse) {
+    return (
+      <div className="celebration">
+        <Confetti />
+        <div className="success-check" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 12.5l5 5L20 6.5" />
+          </svg>
+        </div>
+        <h1>¡Cuenta creada!</h1>
+        <p className="auth-hint">
+          Tu email quedó verificado. Ya podés entrar a TapeCloud, TapeFlix y TapeBeat con esta cuenta.
+        </p>
+        <Button type="button" variant="primary" className="auth-submit" onClick={() => onSuccess(createdResponse)}>
+          Entrar
+        </Button>
+      </div>
+    );
   }
 
   if (pendingEmail) {
