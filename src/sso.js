@@ -1,4 +1,4 @@
-const PORTAL_URL = 'http://localhost:5173';
+const PORTAL_URL = import.meta.env.VITE_PORTAL_URL || 'http://localhost:5173';
 
 /**
  * Loguea la sesión también en el portal, sin sacar al usuario de esta app:

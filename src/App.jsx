@@ -18,7 +18,7 @@ import { useTheme } from './utils/theme';
 import { syncSessionToPortal } from './sso';
 
 const SOURCE_APP = 'tapeflix';
-const PORTAL_URL = 'http://localhost:5173';
+const PORTAL_URL = import.meta.env.VITE_PORTAL_URL || 'http://localhost:5173';
 const RESULT_LIMIT = 40;
 const SUGGESTION_LIMIT = 6;
 const SUGGESTION_DEBOUNCE_MS = 250;

@@ -6,9 +6,9 @@ import tapebeatIconLight from '../assets/tapebeat-icon-light.png';
 import tapeflixIcon from '../assets/tapeflix-icon.png';
 import tapeflixIconLight from '../assets/tapeflix-icon-light.png';
 
-const PORTAL_URL = 'http://localhost:5173';
-const TAPEFLIX_URL = 'http://localhost:5174';
-const TAPEBEAT_URL = 'http://localhost:5175';
+const PORTAL_URL = import.meta.env.VITE_PORTAL_URL || 'http://localhost:5173';
+const TAPEFLIX_URL = import.meta.env.VITE_TAPEFLIX_URL || 'http://localhost:5174';
+const TAPEBEAT_URL = import.meta.env.VITE_TAPEBEAT_URL || 'http://localhost:5175';
 
 function buildAppUrl(baseUrl, theme) {
   const token = localStorage.getItem('tapecloud_token');
