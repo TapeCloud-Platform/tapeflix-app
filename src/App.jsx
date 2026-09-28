@@ -14,11 +14,13 @@ import AuthModal from './components/AuthModal';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import { discover, getFilters } from './discoverApi';
+import { logout } from './api';
 import { useTheme } from './utils/theme';
-import { syncSessionToPortal } from './sso';
+import { broadcastLogout, syncSessionToPortal } from './sso';
 
 const SOURCE_APP = 'tapeflix';
 const PORTAL_URL = import.meta.env.VITE_PORTAL_URL || 'http://localhost:5173';
+const TAPEFLIX_URL = import.meta.env.VITE_TAPEFLIX_URL || 'http://localhost:5174';
 const RESULT_LIMIT = 40;
 const SUGGESTION_LIMIT = 6;
 const SUGGESTION_DEBOUNCE_MS = 250;
@@ -215,7 +217,18 @@ export default function App() {
     return () => window.removeEventListener('pageshow', handlePageShow);
   }, []);
 
-  function handleLogout() {
+  async function handleLogout() {
+    // 1. Invalida el JWT en el backend (aunque falle, se sigue con la limpieza local).
+    const token = localStorage.getItem('tapecloud_token');
+    if (token) {
+      try {
+        await logout(token);
+      } catch {
+        // Sin conexión o token ya inválido: igual se cierra localmente.
+      }
+    }
+    // 2. Avisa al portal y a TapeBeat para que cierren su propia sesión (SSO).
+    broadcastLogout(theme, TAPEFLIX_URL);
     localStorage.removeItem('tapecloud_token');
     localStorage.removeItem('tapecloud_email');
     localStorage.removeItem('tapecloud_display_name');

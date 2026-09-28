@@ -91,6 +91,9 @@
   --menu-shadow: rgba(0, 0, 0, 0.5);
   --menu-scrollbar: rgba(255, 255, 255, 0.24);
   --menu-scrollbar-hover: rgba(255, 255, 255, 0.45);
+  /* Tintes de marca del menú de cuenta: familia del rojo TapeFlix */
+  --menu-tint-a: 239, 68, 68;
+  --menu-tint-b: 153, 27, 27;
 
   background: var(--bg);
   color: var(--ink);
@@ -129,6 +132,8 @@
   --menu-shadow: rgba(15, 23, 42, 0.22);
   --menu-scrollbar: rgba(20, 21, 29, 0.28);
   --menu-scrollbar-hover: rgba(20, 21, 29, 0.5);
+  --menu-tint-a: 220, 38, 38;
+  --menu-tint-b: 153, 27, 27;
 }
 
 * {
@@ -775,8 +780,8 @@ h1, h2, h3, p {
   background:
     radial-gradient(circle at 104% -6%, transparent 55.5%, var(--menu-arc) 56%, transparent 56.9%),
     radial-gradient(var(--menu-grain) 0.7px, transparent 0.7px) 0 0 / 5px 5px,
-    radial-gradient(ellipse at 10% -8%, rgba(211, 32, 62, 0.17), transparent 52%),
-    radial-gradient(ellipse at 96% 108%, rgba(34, 197, 94, 0.13), transparent 48%),
+    radial-gradient(ellipse at 10% -8%, rgba(var(--menu-tint-a), 0.17), transparent 52%),
+    radial-gradient(ellipse at 96% 108%, rgba(var(--menu-tint-b), 0.13), transparent 48%),
     var(--menu-bg);
   box-shadow: inset 0 1px var(--dash-glass-highlight), 0 24px 60px var(--menu-shadow);
   backdrop-filter: blur(22px) saturate(1.25);
