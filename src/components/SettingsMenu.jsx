@@ -1,14 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Dropdown, Avatar } from '@heroui/react';
+import { Dropdown } from '@heroui/react';
 import { getMyReviewStats, updateAvatar } from '../api';
 import { resizeImageToDataUri } from '../avatar';
 import ConfirmDialog from './ConfirmDialog';
 
-const THEME_OPTIONS = [
-  { value: 'dark', label: 'Oscuro', icon: '🌙' },
-  { value: 'light', label: 'Claro', icon: '☀️' },
-];
-
+/** Menú de cuenta con el mismo lenguaje que el portal (secciones 01/02). */
 export default function SettingsMenu({
   sessionUser,
   onLogout,
@@ -32,6 +28,8 @@ export default function SettingsMenu({
 
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarError, setAvatarError] = useState('');
+
+  const initial = sessionUser?.displayName?.[0]?.toUpperCase() || '?';
 
   useEffect(() => {
     setStats(null);
@@ -105,31 +103,36 @@ export default function SettingsMenu({
       />
 
       <Dropdown.Root isOpen={menuOpen} onOpenChange={setMenuOpen}>
-        <Dropdown.Trigger className="icon-button account-trigger" aria-label="Cuenta">
-          <Avatar size="sm" className="account-trigger__avatar">
-            {sessionUser?.avatarDataUri && <Avatar.Image src={sessionUser.avatarDataUri} alt="" />}
-            <Avatar.Fallback>
-              {sessionUser?.displayName?.[0]?.toUpperCase() || '?'}
-            </Avatar.Fallback>
-          </Avatar>
+        <Dropdown.Trigger className="account-menu__trigger" aria-label="Cuenta de usuario">
+          {sessionUser?.avatarDataUri ? (
+            <img className="account-menu__trigger-avatar" src={sessionUser.avatarDataUri} alt="" />
+          ) : (
+            <span className="account-trigger__fallback">{initial}</span>
+          )}
         </Dropdown.Trigger>
 
-        <Dropdown.Popover className="settings-menu__panel" placement="bottom end" offset={10}>
-          <div className="settings-menu__section settings-card__profile">
-            <Avatar size="lg" className="settings-avatar">
-              {sessionUser?.avatarDataUri && <Avatar.Image src={sessionUser.avatarDataUri} alt="" />}
-              <Avatar.Fallback>
-                {sessionUser?.displayName?.[0]?.toUpperCase() || '?'}
-              </Avatar.Fallback>
-            </Avatar>
+        <Dropdown.Popover className="account-menu__panel" placement="bottom end" offset={10}>
+          {/* ---- Sección Usuario ---- */}
+          <p className="account-menu__section-title">Usuario</p>
+
+          <div className="user-menu__profile">
+            {sessionUser?.avatarDataUri ? (
+              <img
+                className="user-menu__avatar user-menu__avatar--large"
+                src={sessionUser.avatarDataUri}
+                alt=""
+              />
+            ) : (
+              <span className="user-menu__avatar user-menu__avatar--large">{initial}</span>
+            )}
             <div>
-              <h2>{sessionUser?.displayName || 'Invitado'}</h2>
-              <p className="settings-card__email">{sessionUser?.email || 'No iniciaste sesión'}</p>
+              <p className="user-menu__name">{sessionUser?.displayName || 'Invitado'}</p>
+              <p className="user-menu__email">{sessionUser?.email || 'Sesión de invitado'}</p>
             </div>
           </div>
 
           {sessionUser && (
-            <div className="settings-menu__section account-menu__avatar-actions">
+            <div className="account-menu__avatar-actions">
               <button
                 type="button"
                 className="settings-menu__item"
@@ -153,7 +156,7 @@ export default function SettingsMenu({
           )}
 
           {sessionUser && (
-            <div className="settings-menu__section">
+            <div className="user-menu__reviews">
               <button
                 type="button"
                 className="user-menu__reviews-toggle"
@@ -186,76 +189,80 @@ export default function SettingsMenu({
           )}
 
           {!sessionUser && (
-            <div className="settings-menu__section account-menu__guest-cta">
-              <p className="settings-card__hint">¡Para obtener la experiencia de TapeCloud, iniciá sesión!</p>
+            <div className="account-menu__guest-cta">
+              <p className="settings-menu__hint">¡Para obtener la experiencia de TapeCloud, iniciá sesión!</p>
               <button
                 type="button"
-                className="inline-login-btn"
+                className="login-button login-button--primary"
                 onClick={() => {
                   setMenuOpen(false);
                   onLoginClick();
                 }}
               >
                 Iniciar sesión
+                <span className="account-menu__cta-arrow" aria-hidden="true">→</span>
               </button>
             </div>
           )}
 
-          <div className="settings-menu__section">
-            <button
-              type="button"
-              className="account-menu__section-toggle"
-              onClick={() => setConfigOpen((open) => !open)}
-              aria-expanded={configOpen}
-            >
-              Configuración
-              <span className={`user-menu__chevron ${configOpen ? 'is-open' : ''}`}>›</span>
-            </button>
+          {/* ---- Sección Configuración (colapsable) ---- */}
+          <button
+            type="button"
+            className="account-menu__section-toggle account-menu__section-toggle--spaced"
+            onClick={() => setConfigOpen((open) => !open)}
+            aria-expanded={configOpen}
+          >
+            Configuración
+            <span className={`user-menu__chevron ${configOpen ? 'is-open' : ''}`}>›</span>
+          </button>
 
-            {configOpen && (
-              <>
-                <a className="settings-menu__item" href={portalUrl}>
-                  Editar cuenta en el portal
-                  <span aria-hidden="true">→</span>
-                </a>
-                <p className="settings-menu__hint">
-                  Usuario, contraseña y verificación en dos pasos se manejan desde el portal de TapeCloud.
-                </p>
+          {configOpen && (
+            <>
+              <a className="settings-menu__item" href={portalUrl}>
+                Editar cuenta en el portal
+                <span aria-hidden="true">→</span>
+              </a>
+              <p className="settings-menu__hint">
+                Usuario, contraseña y verificación en dos pasos se manejan desde el portal de TapeCloud.
+              </p>
 
-                <h3 className="settings-card__title" style={{ marginTop: 14 }}>Apariencia</h3>
-                <p className="settings-card__hint">Elegí cómo se ve TapeFlix en este dispositivo.</p>
-                <div className="theme-toggle-group">
-                  {THEME_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      className={`theme-toggle-option ${theme === option.value ? 'is-active' : ''}`}
-                      onClick={() => onThemeChange(option.value)}
-                      aria-pressed={theme === option.value}
-                    >
-                      <span aria-hidden="true">{option.icon}</span>
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-
-                <button type="button" className="settings-menu__item" disabled style={{ marginTop: 14 }}>
-                  Contacto y soporte
-                  <span className="settings-menu__badge">Próximamente</span>
+              <h3 className="settings-card__title">Apariencia</h3>
+              <p className="settings-menu__hint">Elegí cómo se ve TapeFlix en este dispositivo.</p>
+              <div className="theme-toggle" role="group" aria-label="Elegir tema">
+                <button
+                  type="button"
+                  className={`theme-toggle__option ${theme === 'dark' ? 'is-active' : ''}`}
+                  onClick={() => onThemeChange('dark')}
+                  aria-pressed={theme === 'dark'}
+                >
+                  Oscuro
                 </button>
+                <button
+                  type="button"
+                  className={`theme-toggle__option ${theme === 'light' ? 'is-active' : ''}`}
+                  onClick={() => onThemeChange('light')}
+                  aria-pressed={theme === 'light'}
+                >
+                  Claro
+                </button>
+              </div>
 
-                {sessionUser && (
-                  <button
-                    type="button"
-                    className="settings-menu__item settings-menu__item--danger"
-                    onClick={handleLogoutRequest}
-                  >
-                    Cerrar sesión
-                  </button>
-                )}
-              </>
-            )}
-          </div>
+              <button type="button" className="settings-menu__item" disabled style={{ marginTop: 14 }}>
+                Contacto y soporte
+                <span className="settings-menu__badge">Próximamente</span>
+              </button>
+
+              {sessionUser && (
+                <button
+                  type="button"
+                  className="settings-menu__item settings-menu__item--danger"
+                  onClick={handleLogoutRequest}
+                >
+                  Cerrar sesión
+                </button>
+              )}
+            </>
+          )}
         </Dropdown.Popover>
       </Dropdown.Root>
 
