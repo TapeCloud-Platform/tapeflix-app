@@ -199,6 +199,12 @@ export default function PersonDetailPage({ sessionUser, onLoginClick }) {
   const shareText = `Mirá a ${profile?.name || decodedName} en TapeFlix`;
   const twitterShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(window.location.href)}`;
 
+  /** Cargar más películas de la filmografía */
+  const isLoadingMore = loadedCount > 0 && movies.length > loadedCount;
+  const handleLoadMore = () => {
+    setLoadedCount((prev) => Math.min(prev + LOAD_MORE_LIMIT, movies.length));
+  };
+
   function renderMovieCard(movie) {
     return (
       <article key={movie.externalId} className="movie-card">
@@ -211,7 +217,7 @@ export default function PersonDetailPage({ sessionUser, onLoginClick }) {
               onError={(event) => {
                 event.currentTarget.style.display = 'none';
               }}
-            )
+            />
           ) : (
             <div className="poster">{movie.title?.[0] || '🎬'}</div>
           )}
@@ -441,9 +447,3 @@ export default function PersonDetailPage({ sessionUser, onLoginClick }) {
     </main>
   );
 }
-
-/** Función para cargar más películas */
-const isLoadingMore = loadedCount > 0 && movies.length > loadedCount;
-const handleLoadMore = async () => {
-  setLoadedCount(prev => Math.min(prev + LOAD_MORE_LIMIT, movies.length));
-};

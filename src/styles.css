@@ -2438,3 +2438,34 @@ h1, h2, h3, p {
     height: 50px;
   }
 }
+
+/* Spoilers (compartido con TapeBeat) */
+.spoiler-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+  vertical-align: middle;
+}
+.review-body--spoiler {
+  position: relative;
+}
+.review-body--spoiler.is-blurred {
+  filter: blur(5px);
+  user-select: none;
+  pointer-events: none;
+}
+.spoiler-reveal-btn {
+  margin-top: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid #fcd34d;
+  background: transparent;
+  font-size: 0.8rem;
+  cursor: pointer;
+}

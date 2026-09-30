@@ -10,6 +10,7 @@ import AppHeader from './components/AppHeader';
 import CategoryDrawer from './components/CategoryDrawer';
 import CatalogPage from './components/CatalogPage';
 import MovieDetailPage from './components/MovieDetailPage';
+import PersonDetailPage from './components/PersonDetailPage';
 import AuthModal from './components/AuthModal';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
