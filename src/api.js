@@ -1,0 +1,261 @@
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+async function request(path) {
+  const response = await fetch(`${API_URL}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const contentType = response.headers.get('content-type') || '';
+    const body = contentType.includes('application/json')
+      ? await response.json()
+      : await response.text();
+
+    throw new Error(typeof body === 'string' ? body : body.message || 'Error en la petición');
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  return contentType.includes('application/json') ? response.json() : response.text();
+}
+
+async function postJson(path, payload) {
+  const response = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (response.status === 204) {
+    if (!response.ok) {
+      throw new Error('No se pudo completar la operación.');
+    }
+    return null;
+  }
+
+  const body = await response.json();
+
+  if (!response.ok) {
+    const error = new Error(body.message || 'No se pudo completar la operación.');
+    error.totpRequired = Boolean(body.totpRequired);
+    throw error;
+  }
+
+  return body;
+}
+
+/** El login acepta email o nombre de usuario indistintamente. totpCode solo hace falta si la cuenta tiene 2FA activado. */
+export async function login(identifier, password, totpCode) {
+  return postJson('/api/auth/login', { identifier, password, totpCode: totpCode || undefined });
+}
+
+export async function register(email, username, password) {
+  return postJson('/api/auth/register', { email, username, password });
+}
+
+export async function verifyEmail(email, code) {
+  return postJson('/api/auth/verify-email', { email, code });
+}
+
+export async function resendVerificationCode(email) {
+  return postJson('/api/auth/resend-code', { email });
+}
+
+export async function findContentByExternalId(externalId) {
+  const response = await fetch(
+    `${API_URL}/api/content/lookup?sourceApp=tapeflix&sourceType=movie&externalId=${encodeURIComponent(externalId)}`
+  );
+  if (response.status === 204) {
+    return null;
+  }
+  if (!response.ok) {
+    throw new Error('No se pudo buscar la película.');
+  }
+  return response.json();
+}
+
+/** Las películas del descubrimiento llegan de TMDb en vivo; hay que registrarlas para poder reseñarlas. */
+export async function registerContent(token, movie) {
+  const response = await fetch(`${API_URL}/api/content`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      sourceApp: 'tapeflix',
+      sourceType: 'movie',
+      externalId: String(movie.externalId ?? movie.id),
+      title: movie.title,
+      description: movie.description || '',
+      imageUrl: movie.imageUrl || '',
+      releaseDate: /^\d{4}-\d{2}-\d{2}$/.test(movie.releaseDate || '') ? movie.releaseDate : null,
+      genre: movie.genre || 'General',
+    }),
+  });
+
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(body.message || 'No se pudo registrar la película.');
+  }
+  return body;
+}
+
+export async function getReviews(contentId) {
+  const token = localStorage.getItem('tapecloud_token');
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const path = contentId
+    ? `/api/reviews?contentId=${contentId}`
+    : '/api/reviews?sourceApp=tapeflix';
+
+  const response = await fetch(`${API_URL}${path}`, { headers });
+  if (!response.ok) {
+    throw new Error('Error al cargar las reseñas');
+  }
+  return response.json();
+}
+
+export async function createReview(contentId, token, reviewData) {
+  const response = await fetch(`${API_URL}/api/reviews/content/${contentId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(reviewData),
+  });
+
+  const body = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(body.message || 'No se pudo publicar la reseña.');
+  }
+
+  return body;
+}
+
+export async function toggleReviewLike(reviewId, token) {
+  const response = await fetch(`${API_URL}/api/reviews/${reviewId}/like`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const body = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(body.message || 'No se pudo registrar el me gusta.');
+  }
+
+  return body;
+}
+
+export async function deleteReview(reviewId, token) {
+  const response = await fetch(`${API_URL}/api/reviews/${reviewId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok && response.status !== 204) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.message || 'No se pudo eliminar la reseña.');
+  }
+}
+
+export async function getComments(reviewId) {
+  return request(`/api/comments?reviewId=${reviewId}`);
+}
+
+export async function createComment(reviewId, token, commentData) {
+  const response = await fetch(`${API_URL}/api/comments/review/${reviewId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(commentData),
+  });
+
+  const body = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(body.message || 'No se pudo publicar el comentario.');
+  }
+
+  return body;
+}
+
+export async function deleteComment(commentId, token) {
+  const response = await fetch(`${API_URL}/api/comments/${commentId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok && response.status !== 204) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.message || 'No se pudo eliminar el comentario.');
+  }
+}
+
+async function authedRequest(path, method, token, payload) {
+  const response = await fetch(`${API_URL}${path}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  const body = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const error = new Error(body.message || 'No se pudo completar la operación.');
+    error.totpRequired = Boolean(body.totpRequired);
+    throw error;
+  }
+
+  return body;
+}
+
+export async function getMyReviewStats(token) {
+  return authedRequest('/api/reviews/me/stats', 'GET', token);
+}
+
+/** Invalida el JWT en el backend (bump de tokenVersion). 204 = sin contenido. */
+export async function logout(token) {
+  return authedRequest('/api/auth/logout', 'POST', token);
+}
+
+/**
+ * Valida la sesión contra el backend. Devuelve false solo con 401 (token
+ * revocado: logout desde otra app, cambio de contraseña, etc). Con error de
+ * red se asume válida para no cerrar sesiones por estar offline.
+ */
+export async function checkSession(token) {
+  let response;
+  try {
+    response = await fetch(`${API_URL}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    return true;
+  }
+  return response.status !== 401;
+}
+
