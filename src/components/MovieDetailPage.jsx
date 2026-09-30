@@ -6,6 +6,7 @@ import {
   registerContent,
   getReviews,
   createReview,
+  updateReview,
   deleteReview,
   toggleReviewLike,
   getComments,
@@ -14,7 +15,17 @@ import {
 } from '../api';
 import StarRating from './StarRating';
 import AlreadyReviewedDialog from './AlreadyReviewedDialog';
+import ConfirmDialog from './ConfirmDialog';
 import { formatFullDate, formatYear } from '../utils/format';
+import { findProfanity } from '../utils/profanity';
+import {
+  REVIEW_TITLE_MAX,
+  REVIEW_BODY_MAX,
+  editCooldownRemaining,
+  parseCooldownFromMessage,
+} from '../utils/reviewLimits';
+
+const PROFANITY_WARNING = 'Tu texto contiene lenguaje no permitido. Revisá tu texto y probá de nuevo.';
 
 export default function MovieDetailPage({ sessionUser, onLoginClick }) {
   const { movieId } = useParams();
@@ -27,12 +38,19 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
   const [commentsByReview, setCommentsByReview] = useState({});
   const [openCommentsFor, setOpenCommentsFor] = useState(null);
   const [commentDraft, setCommentDraft] = useState('');
+  const [commentError, setCommentError] = useState('');
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
-  const [form, setForm] = useState({ title: '', body: '', rating: 5 });
+  const [form, setForm] = useState({ title: '', body: '', rating: 5, isSpoiler: false });
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
   const [showAlreadyReviewed, setShowAlreadyReviewed] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({ title: '', body: '', rating: 5, isSpoiler: false });
+  const [editError, setEditError] = useState('');
+  const [editCooldown, setEditCooldown] = useState(0);
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const [revealedSpoilers, setRevealedSpoilers] = useState({});
 
   const token = localStorage.getItem('tapecloud_token');
   const hasOwnReview = Boolean(sessionUser && reviews.some((review) => review.ownedByCurrentUser));
@@ -80,10 +98,30 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
     };
   }, [movieId, movie, loadReviews]);
 
+  // Cuenta regresiva del cooldown de edición (30s entre ediciones).
+  useEffect(() => {
+    if (!editingId) {
+      setEditCooldown(0);
+      return undefined;
+    }
+    const review = reviews.find((item) => item.id === editingId);
+    setEditCooldown(editCooldownRemaining(review?.updatedAt || review?.createdAt));
+    const timer = setInterval(() => {
+      const current = reviews.find((item) => item.id === editingId);
+      setEditCooldown(editCooldownRemaining(current?.updatedAt || current?.createdAt));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [editingId, reviews]);
+
   async function handleSubmitReview(event) {
     event.preventDefault();
     setFormError('');
     setFormSuccess('');
+
+    if (findProfanity(form.title) || findProfanity(form.body)) {
+      setFormError(PROFANITY_WARNING);
+      return;
+    }
 
     try {
       // Las películas que vienen del descubrimiento todavía no existen como ContentItem.
@@ -98,13 +136,55 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
         title: form.title,
         body: form.body,
         rating: form.rating,
+        isSpoiler: form.isSpoiler,
       });
-      setForm({ title: '', body: '', rating: 5 });
+      setForm({ title: '', body: '', rating: 5, isSpoiler: false });
       setFormOpen(false);
       setFormSuccess('Reseña publicada.');
       await loadReviews(targetId);
     } catch (err) {
       setFormError(err.message || 'No se pudo publicar la reseña.');
+    }
+  }
+
+  function handleStartEdit(review) {
+    setEditError('');
+    setEditingId(review.id);
+    setEditForm({
+      title: review.title || '',
+      body: review.body || '',
+      rating: review.rating ?? 5,
+      isSpoiler: Boolean(review.isSpoiler),
+    });
+  }
+
+  async function handleSubmitEdit(event) {
+    event.preventDefault();
+    setEditError('');
+
+    if (findProfanity(editForm.title) || findProfanity(editForm.body)) {
+      setEditError(PROFANITY_WARNING);
+      return;
+    }
+
+    try {
+      await updateReview(editingId, token, {
+        title: editForm.title,
+        body: editForm.body,
+        rating: editForm.rating,
+        isSpoiler: editForm.isSpoiler,
+      });
+      setEditingId(null);
+      setFormSuccess('Reseña actualizada.');
+      await loadReviews(contentId);
+    } catch (err) {
+      if (err.status === 429) {
+        const wait = parseCooldownFromMessage(err.message);
+        if (wait !== null) {
+          setEditCooldown(wait);
+        }
+      }
+      setEditError(err.message || 'No se pudo actualizar la reseña.');
     }
   }
 
@@ -117,12 +197,29 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
     }
   }
 
-  async function handleDeleteReview(reviewId) {
+  async function handleConfirmDelete() {
+    if (!pendingDelete) {
+      return;
+    }
     try {
-      await deleteReview(reviewId, token);
-      await loadReviews(contentId);
+      if (pendingDelete.kind === 'review') {
+        await deleteReview(pendingDelete.id, token);
+        if (editingId === pendingDelete.id) {
+          setEditingId(null);
+        }
+        await loadReviews(contentId);
+      } else {
+        await deleteComment(pendingDelete.id, token);
+        setCommentsByReview((current) => ({
+          ...current,
+          [pendingDelete.reviewId]: (current[pendingDelete.reviewId] || []).filter((c) => c.id !== pendingDelete.id),
+        }));
+        await loadReviews(contentId);
+      }
     } catch (err) {
-      setFormError(err.message || 'No se pudo eliminar la reseña.');
+      setFormError(err.message || 'No se pudo eliminar.');
+    } finally {
+      setPendingDelete(null);
     }
   }
 
@@ -144,6 +241,11 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
     if (!commentDraft.trim()) {
       return;
     }
+    setCommentError('');
+    if (findProfanity(commentDraft)) {
+      setCommentError(PROFANITY_WARNING);
+      return;
+    }
 
     try {
       const created = await createComment(reviewId, token, { body: commentDraft });
@@ -153,22 +255,13 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
       }));
       setCommentDraft('');
       await loadReviews(contentId);
-    } catch {
-      // Se ignora para no bloquear la lectura de la reseña.
+    } catch (err) {
+      setCommentError(err.message || 'No se pudo publicar el comentario.');
     }
   }
 
-  async function handleDeleteComment(reviewId, commentId) {
-    try {
-      await deleteComment(commentId, token);
-      setCommentsByReview((current) => ({
-        ...current,
-        [reviewId]: (current[reviewId] || []).filter((c) => c.id !== commentId),
-      }));
-      await loadReviews(contentId);
-    } catch {
-      // Se ignora.
-    }
+  function toggleSpoilerReveal(reviewId) {
+    setRevealedSpoilers((current) => ({ ...current, [reviewId]: !current[reviewId] }));
   }
 
   if (loading) {
@@ -269,30 +362,142 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
           <div className="review-panel">
             <div className="review-panel__list">
               {formError && !formOpen && <p className="error-text">{formError}</p>}
+              {formSuccess && !formOpen && !editingId && <p className="success-text">{formSuccess}</p>}
               {reviews.length === 0 ? (
                 <p className="no-reviews">No hay reseñas para esta película aún.</p>
               ) : (
                 <div className="modal-reviews-list">
-                  {reviews.map((review) => (
+                  {reviews.map((review) => {
+                    const isSpoilerHidden = Boolean(review.isSpoiler) && !revealedSpoilers[review.id];
+                    return (
                 <article key={review.id} className="review-card">
                   <div className="review-header">
                     <strong>{review.title}</strong>
                     <div className="modal-review-actions">
                       <StarRating value={review.rating} size="sm" />
-                      {review.ownedByCurrentUser && (
-                        <button
-                          type="button"
-                          className="delete-review-btn"
-                          onClick={() => handleDeleteReview(review.id)}
-                          title="Eliminar reseña"
-                        >
-                          🗑
-                        </button>
+                      {review.ownedByCurrentUser && editingId !== review.id && (
+                        <>
+                          <button
+                            type="button"
+                            className="edit-review-btn"
+                            onClick={() => handleStartEdit(review)}
+                            title="Editar reseña"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            type="button"
+                            className="delete-review-btn"
+                            onClick={() => setPendingDelete({ kind: 'review', id: review.id })}
+                            title="Eliminar reseña"
+                          >
+                            🗑
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
 
-                  <p className="review-body">{review.body}</p>
+                  {review.isSpoiler && (
+                    <p className="spoiler-badge">⚠️ Contiene spoiler</p>
+                  )}
+
+                  {editingId === review.id ? (
+                    <form className="review-form review-form--edit" onSubmit={handleSubmitEdit}>
+                      {editError && <p className="error-text">{editError}</p>}
+                      {editCooldown > 0 && (
+                        <p className="error-text">
+                          Podés volver a editar en {editCooldown} segundo{editCooldown === 1 ? '' : 's'}.
+                        </p>
+                      )}
+
+                      <TextField
+                        className="review-field"
+                        value={editForm.title}
+                        onChange={(title) => setEditForm({ ...editForm, title })}
+                        isRequired
+                      >
+                        <Label>Título</Label>
+                        <Input placeholder="Un resumen breve" maxLength={REVIEW_TITLE_MAX} />
+                      </TextField>
+                      <small className="char-count">
+                        {editForm.title.length}/{REVIEW_TITLE_MAX}
+                      </small>
+
+                      <div className="review-field">
+                        <span>Puntuación</span>
+                        <StarRating
+                          value={editForm.rating}
+                          onChange={(rating) => setEditForm({ ...editForm, rating })}
+                          size="lg"
+                        />
+                      </div>
+
+                      <TextField
+                        className="review-field"
+                        value={editForm.body}
+                        onChange={(body) => setEditForm({ ...editForm, body })}
+                        isRequired
+                      >
+                        <Label>Tu opinión</Label>
+                        <TextArea rows={5} maxLength={REVIEW_BODY_MAX} placeholder="¿Qué te pareció?" />
+                      </TextField>
+                      <small className="char-count">
+                        {editForm.body.length}/{REVIEW_BODY_MAX}
+                      </small>
+
+                      <label className="spoiler-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={editForm.isSpoiler}
+                          onChange={(event) => setEditForm({ ...editForm, isSpoiler: event.target.checked })}
+                        />
+                        Contiene spoiler
+                      </label>
+
+                      <div className="review-form-actions">
+                        <Button type="submit" variant="primary" isDisabled={editCooldown > 0}>
+                          Guardar cambios
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            setEditingId(null);
+                            setEditError('');
+                          }}
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </form>
+                  ) : isSpoilerHidden ? (
+                    <div className="spoiler-hidden">
+                      <p className="review-body" style={{ filter: 'blur(5px)', userSelect: 'none' }} aria-hidden="true">
+                        {review.body}
+                      </p>
+                      <button
+                        type="button"
+                        className="spoiler-reveal-btn"
+                        onClick={() => toggleSpoilerReveal(review.id)}
+                      >
+                        Mostrar spoiler
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="review-body">{review.body}</p>
+                      {review.isSpoiler && revealedSpoilers[review.id] && (
+                        <button
+                          type="button"
+                          className="spoiler-reveal-btn"
+                          onClick={() => toggleSpoilerReveal(review.id)}
+                        >
+                          Ocultar spoiler
+                        </button>
+                      )}
+                    </>
+                  )}
                   <small className="review-author">
                     Por: {review.authorDisplayName || 'Anónimo'}
                   </small>
@@ -328,7 +533,7 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                                 <button
                                   type="button"
                                   className="delete-comment-btn"
-                                  onClick={() => handleDeleteComment(review.id, comment.id)}
+                                  onClick={() => setPendingDelete({ kind: 'comment', reviewId: review.id, id: comment.id })}
                                   title="Eliminar comentario"
                                 >
                                   🗑
@@ -354,6 +559,7 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                           <button type="submit" className="submit-comment-btn">
                             Enviar
                           </button>
+                          {commentError && <p className="error-text">{commentError}</p>}
                         </form>
                       ) : (
                         <p className="login-notice-small">Iniciá sesión para comentar.</p>
@@ -361,7 +567,8 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                     </div>
                   )}
                 </article>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -395,8 +602,11 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                         isRequired
                       >
                         <Label>Título</Label>
-                        <Input placeholder="Un resumen breve" maxLength={200} />
+                        <Input placeholder="Un resumen breve" maxLength={REVIEW_TITLE_MAX} />
                       </TextField>
+                      <small className="char-count">
+                        {form.title.length}/{REVIEW_TITLE_MAX}
+                      </small>
 
                       <div className="review-field">
                         <span>Puntuación</span>
@@ -414,8 +624,20 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                         isRequired
                       >
                         <Label>Tu opinión</Label>
-                        <TextArea rows={5} maxLength={4000} placeholder="¿Qué te pareció?" />
+                        <TextArea rows={5} maxLength={REVIEW_BODY_MAX} placeholder="¿Qué te pareció?" />
                       </TextField>
+                      <small className="char-count">
+                        {form.body.length}/{REVIEW_BODY_MAX}
+                      </small>
+
+                      <label className="spoiler-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={form.isSpoiler}
+                          onChange={(event) => setForm({ ...form, isSpoiler: event.target.checked })}
+                        />
+                        Contiene spoiler
+                      </label>
 
                       <div className="review-form-actions">
                         <Button type="submit" variant="primary">
@@ -442,6 +664,18 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
       </section>
 
       <AlreadyReviewedDialog isOpen={showAlreadyReviewed} onClose={() => setShowAlreadyReviewed(false)} />
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title={pendingDelete.kind === 'review' ? 'Eliminar reseña' : 'Eliminar comentario'}
+          message="¿Seguro que querés hacer esto? Esta acción no se puede deshacer."
+          confirmLabel="Eliminar"
+          danger
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setPendingDelete(null)}
+        />
+      )}
     </main>
   );
 }
+

@@ -171,6 +171,27 @@ export async function deleteReview(reviewId, token) {
   }
 }
 
+export async function updateReview(reviewId, token, reviewData) {
+  const response = await fetch(`${API_URL}/api/reviews/${reviewId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(reviewData),
+  });
+
+  const body = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const error = new Error(body.message || 'No se pudo actualizar la reseña.');
+    error.status = response.status;
+    throw error;
+  }
+
+  return body;
+}
+
 export async function getComments(reviewId) {
   return request(`/api/comments?reviewId=${reviewId}`);
 }

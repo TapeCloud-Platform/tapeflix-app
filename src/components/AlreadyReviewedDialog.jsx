@@ -12,7 +12,7 @@ export default function AlreadyReviewedDialog({ isOpen, onClose }) {
             </AlertDialog.Header>
             <AlertDialog.Body>
               Cada usuario puede publicar una sola reseña por título. Si querés cambiar tu
-              opinión, borrá la reseña existente desde la lista y después creá una nueva.
+              opinión, usá el botón ✏️ de tu reseña en la lista (podés editar una vez cada 30 segundos).
             </AlertDialog.Body>
             <AlertDialog.Footer>
               <Button variant="primary" onClick={onClose}>
