@@ -1,7 +1,7 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 export async function getFilters(sourceApp) {
-  const response = await fetch(`${API_URL}/api/discover/${sourceApp}/filters`);
+  const response = await fetch(`${API_URL}/api/discover/${sourceApp}/filters`, { credentials: 'include' });
   if (!response.ok) {
     throw new Error('No se pudieron cargar los filtros.');
   }
@@ -14,7 +14,7 @@ export async function discover(sourceApp, { type = 'top', value = '', limit = 30
     params.set('value', value);
   }
 
-  const response = await fetch(`${API_URL}/api/discover/${sourceApp}?${params}`);
+  const response = await fetch(`${API_URL}/api/discover/${sourceApp}?${params}`, { credentials: 'include' });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body.message || 'No se pudo cargar el contenido.');
@@ -24,7 +24,7 @@ export async function discover(sourceApp, { type = 'top', value = '', limit = 30
 
 export async function getProfile(sourceApp, name) {
   const params = new URLSearchParams({ value: name });
-  const response = await fetch(`${API_URL}/api/discover/${sourceApp}/profile?${params}`);
+  const response = await fetch(`${API_URL}/api/discover/${sourceApp}/profile?${params}`, { credentials: 'include' });
   if (!response.ok) {
     return null;
   }
@@ -36,7 +36,7 @@ export async function getProfile(sourceApp, name) {
   if (q.length < 2) {
     return [];
   }
-  const response = await fetch(`${API_URL}/api/users/search?${new URLSearchParams({ q })}`);
+  const response = await fetch(`${API_URL}/api/users/search?${new URLSearchParams({ q })}`, { credentials: 'include' });
   if (!response.ok) {
     return [];
   }
@@ -81,7 +81,7 @@ export async function searchAll(sourceApp, query, perGroup = 4) {
 
 /** Perfil público de un usuario (stats de reseñas, sin email). */
 export async function getUserProfile(username) {
-  const response = await fetch(`${API_URL}/api/users/${encodeURIComponent(username)}/profile`);
+  const response = await fetch(`${API_URL}/api/users/${encodeURIComponent(username)}/profile`, { credentials: 'include' });
   if (!response.ok) {
     return null;
   }
