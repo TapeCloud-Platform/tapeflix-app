@@ -2503,6 +2503,17 @@ h1, h2, h3, p {
 }
 
 /* ============ Header unificado: topbar + nav grande + búsqueda agrupada ============ */
+/* Header full-bleed: el fondo ocupa todo el ancho, el contenido va centrado. */
+.app-header {
+  margin: 0 0 20px;
+  padding: 0;
+}
+
+.app-header__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
 .app-header__topbar {
   display: flex;
   align-items: center;
@@ -2838,4 +2849,24 @@ h1, h2, h3, p {
   border-radius: 12px;
   border: 1px solid var(--border-soft);
   background: var(--surface-bg);
+}
+
+/* Scrollbars ocultos en nav, drawer, panel de búsqueda y tabs (siguen scrolleando) */
+.app-header__navbar,
+.drawer__body,
+.drawer__chips,
+.header-search__panel,
+.entity-tabs {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.app-header__navbar::-webkit-scrollbar,
+.drawer__body::-webkit-scrollbar,
+.drawer__chips::-webkit-scrollbar,
+.header-search__panel::-webkit-scrollbar,
+.entity-tabs::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }

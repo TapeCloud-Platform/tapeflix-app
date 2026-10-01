@@ -119,6 +119,7 @@ export default function AppHeader({
 
   return (
     <header className="app-header">
+      <div className="app-header__inner">
       <div className="app-header__topbar">
         <div className="app-header__left">
           <SettingsMenu
@@ -129,20 +130,6 @@ export default function AppHeader({
             onThemeChange={onThemeChange}
             portalUrl={portalUrl}
           />
-
-          <button
-            type="button"
-            className="app-header__explore"
-            onClick={onOpenMenu}
-            aria-label="Abrir menú de exploración"
-          >
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-              <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
-              <line x1="3" y1="12" x2="21" y2="12" strokeLinecap="round" />
-              <line x1="3" y1="18" x2="21" y2="18" strokeLinecap="round" />
-            </svg>
-            <span>Explorar</span>
-          </button>
         </div>
 
         <button type="button" className="app-header__brand" onClick={onHome} aria-label="Volver al inicio">
@@ -284,6 +271,7 @@ export default function AppHeader({
           </button>
         </nav>
       )}
+      </div>
     </header>
   );
 }
