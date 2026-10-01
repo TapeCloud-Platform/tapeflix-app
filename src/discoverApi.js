@@ -30,3 +30,60 @@ export async function getProfile(sourceApp, name) {
   }
   return response.json();
 }
+
+/** Búsqueda pública de usuarios (nombre visible + avatar, sin emails). */export async function searchUsers(query, limit = 4) {
+  const q = (query || '').trim();
+  if (q.length < 2) {
+    return [];
+  }
+  const response = await fetch(`${API_URL}/api/users/search?${new URLSearchParams({ q })}`);
+  if (!response.ok) {
+    return [];
+  }
+  const users = await response.json().catch(() => []);
+  return (Array.isArray(users) ? users : []).slice(0, limit).map((u) => ({
+    externalId: `user:${u.username}`,
+    title: u.displayName || u.username,
+    subtitle: `@${u.username}`,
+    description: 'Usuario de TapeCloud',
+    imageUrl: u.avatarDataUri || null,
+    genre: u.username,
+    kind: 'user',
+  }));
+}
+
+/**
+ * Búsqueda agrupada del header: películas + personas + usuarios en paralelo.
+ * Cada grupo trae como máximo `perGroup` resultados para que el panel muestre más sin mezclar.
+ */
+export async function searchAll(sourceApp, query, perGroup = 4) {
+  const q = (query || '').trim();
+  if (q.length < 2) {
+    return { groups: [], flat: [] };
+  }
+  const [movies, people, users] = await Promise.all([
+    discover(sourceApp, { type: 'search', value: q, limit: perGroup }).catch(() => []),
+    discover(sourceApp, { type: 'people', value: q, limit: perGroup }).catch(() => []),
+    searchUsers(q, perGroup),
+  ]);
+  const groups = [];
+  if (movies.length > 0) {
+    groups.push({ key: 'movies', label: 'Películas', items: movies.slice(0, perGroup) });
+  }
+  if (people.length > 0) {
+    groups.push({ key: 'people', label: 'Actores y directores', items: people.slice(0, perGroup) });
+  }
+  if (users.length > 0) {
+    groups.push({ key: 'users', label: 'Usuarios', items: users.slice(0, perGroup) });
+  }
+  return { groups, flat: groups.flatMap((g) => g.items) };
+}
+
+/** Perfil público de un usuario (stats de reseñas, sin email). */
+export async function getUserProfile(username) {
+  const response = await fetch(`${API_URL}/api/users/${encodeURIComponent(username)}/profile`);
+  if (!response.ok) {
+    return null;
+  }
+  return response.json();
+}

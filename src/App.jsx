@@ -11,11 +11,12 @@ import CategoryDrawer from './components/CategoryDrawer';
 import CatalogPage from './components/CatalogPage';
 import MovieDetailPage from './components/MovieDetailPage';
 import PersonDetailPage from './components/PersonDetailPage';
+import UserProfilePage from './components/UserProfilePage';
 import AuthModal from './components/AuthModal';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
-import { discover, getFilters } from './discoverApi';
-import { checkSession, logout } from './api';
+import { discover, getFilters, searchAll } from './discoverApi';
+import { checkSession, getMe, logout } from './api';
 import { useTheme } from './utils/theme';
 import { broadcastLogout, syncSessionToPortal } from './sso';
 
@@ -23,7 +24,7 @@ const SOURCE_APP = 'tapeflix';
 const PORTAL_URL = import.meta.env.VITE_PORTAL_URL || 'http://localhost:5173';
 const TAPEFLIX_URL = import.meta.env.VITE_TAPEFLIX_URL || 'http://localhost:5174';
 const RESULT_LIMIT = 40;
-const SUGGESTION_LIMIT = 6;
+const SUGGESTION_PER_GROUP = 4;
 const SUGGESTION_DEBOUNCE_MS = 250;
 
 function consumeSsoParams() {
@@ -35,7 +36,6 @@ function consumeSsoParams() {
   }
 
   if (params.get('sso_logout') === 'true') {
-    localStorage.removeItem('tapecloud_token');
     localStorage.removeItem('tapecloud_email');
     localStorage.removeItem('tapecloud_display_name');
     localStorage.removeItem('tapecloud_avatar');
@@ -43,11 +43,11 @@ function consumeSsoParams() {
     return;
   }
 
-  const token = params.get('sso_token');
+  // La auth viaja por cookie httpOnly: el token ya no pasa por URL.
+  // Se restaura solo perfil UI (email/display/avatar); la sesión se valida
+  // contra /api/auth/me con credentials:include.
   const email = params.get('sso_email');
-
-  if (token && email) {
-    localStorage.setItem('tapecloud_token', token);
+  if (email) {
     localStorage.setItem('tapecloud_email', email);
     localStorage.setItem('tapecloud_display_name', params.get('sso_display_name') || '');
     const avatar = params.get('sso_avatar');
@@ -88,19 +88,18 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
     getFilters(SOURCE_APP).then(setFilters).catch(() => setFilters([]));
   }, []);
 
-  // Búsqueda "en vivo": mientras se escribe, se muestran resultados similares
-  // aunque la consulta esté incompleta (el backend ya hace matching parcial).
+  // Búsqueda "en vivo" agrupada: películas + personas + usuarios en paralelo.
   function handleSearchPreview(query) {
     clearTimeout(previewTimer.current);
     if (query.length < 2) {
-      setSuggestions([]);
+      setSuggestions({ groups: [], flat: [] });
       return;
     }
     setSuggestions(null);
     previewTimer.current = setTimeout(() => {
-      discover(SOURCE_APP, { type: 'search', value: query, limit: SUGGESTION_LIMIT })
-        .then((data) => setSuggestions((data || []).slice(0, SUGGESTION_LIMIT)))
-        .catch(() => setSuggestions([]));
+      searchAll(SOURCE_APP, query, SUGGESTION_PER_GROUP)
+        .then(setSuggestions)
+        .catch(() => setSuggestions({ groups: [], flat: [] }));
     }, SUGGESTION_DEBOUNCE_MS);
   }
 
@@ -141,6 +140,15 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
     navigate('/catalog');
   }
 
+  function selectPerson(item) {
+    navigate(`/person/${encodeURIComponent(item.title)}`);
+  }
+
+  function selectUser(item) {
+    const username = item.genre || item.title.replace(/^@/, '');
+    navigate(`/user/${encodeURIComponent(username)}`);
+  }
+
   const activeFilter = filters.find((filter) => filter.type === active.type);
   const portalUrl = `${PORTAL_URL}?sso_theme=${theme}`;
 
@@ -158,8 +166,13 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
         suggestions={suggestions}
         onOpenMenu={() => setMenuOpen(true)}
         onHome={() => applyFilter({ type: 'top', value: '' })}
+        onSelectPerson={selectPerson}
+        onSelectUser={selectUser}
         theme={theme}
         onThemeChange={onThemeChange}
+        filters={filters}
+        active={active}
+        onApplyFilter={applyFilter}
       />
 
       <CategoryDrawer
@@ -187,6 +200,7 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
         />
         <Route path="/movie/:movieId" element={<MovieDetailPage sessionUser={sessionUser} onLoginClick={onLoginClick} />} />
         <Route path="/person/:personName" element={<PersonDetailPage sessionUser={sessionUser} onLoginClick={onLoginClick} />} />
+        <Route path="/user/:username" element={<UserProfilePage />} />
         <Route path="/" element={<Navigate to="/catalog" replace />} />
       </Routes>
     </div>
@@ -206,22 +220,35 @@ export default function App() {
   const [authView, setAuthView] = useState(null);
 
   useEffect(() => {
-    // La limpieza por iframe puede no llegar (los navegadores particionan el
-    // storage de iframes de terceros): al mostrar la app se revalida el token
-    // contra el backend y un 401 limpia la sesión local.
+    // La cookie httpOnly se revalida contra el backend; un 401 limpia el
+    // perfil UI local. Si hay cookie válida pero sin perfil local (login en
+    // otra app), se restaura vía /api/auth/me.
     let cancelled = false;
     async function validateSession() {
-      const token = localStorage.getItem('tapecloud_token');
-      if (!token) {
-        return;
-      }
-      const valid = await checkSession(token);
-      if (!valid && !cancelled) {
-        localStorage.removeItem('tapecloud_token');
+      const valid = await checkSession();
+      if (cancelled) return;
+      if (!valid) {
         localStorage.removeItem('tapecloud_email');
         localStorage.removeItem('tapecloud_display_name');
         localStorage.removeItem('tapecloud_avatar');
         setSessionUser(null);
+        return;
+      }
+      if (!localStorage.getItem('tapecloud_email')) {
+        try {
+          const me = await getMe();
+          if (cancelled) return;
+          localStorage.setItem('tapecloud_email', me.email);
+          localStorage.setItem('tapecloud_display_name', me.displayName || me.email.split('@')[0]);
+          if (me.avatarDataUri) localStorage.setItem('tapecloud_avatar', me.avatarDataUri);
+          setSessionUser({
+            email: me.email,
+            displayName: me.displayName || me.email.split('@')[0],
+            avatarDataUri: me.avatarDataUri || null,
+          });
+        } catch {
+          // /me falló pero la cookie parece válida: no se cierra sesión.
+        }
       }
     }
     validateSession();
@@ -248,18 +275,14 @@ export default function App() {
   }, []);
 
   async function handleLogout() {
-    // 1. Invalida el JWT en el backend (aunque falle, se sigue con la limpieza local).
-    const token = localStorage.getItem('tapecloud_token');
-    if (token) {
-      try {
-        await logout(token);
-      } catch {
-        // Sin conexión o token ya inválido: igual se cierra localmente.
-      }
+    // 1. Invalida la sesión en el backend (limpia cookie; aunque falle, se sigue local).
+    try {
+      await logout();
+    } catch {
+      // Sin conexión o sesión ya inválida: igual se cierra localmente.
     }
-    // 2. Avisa al portal y a TapeBeat para que cierren su propia sesión (SSO).
+    // 2. Avisa al portal y a TapeBeat para que cierren su propio perfil UI (SSO).
     broadcastLogout(theme, TAPEFLIX_URL);
-    localStorage.removeItem('tapecloud_token');
     localStorage.removeItem('tapecloud_email');
     localStorage.removeItem('tapecloud_display_name');
     localStorage.removeItem('tapecloud_avatar');
@@ -267,7 +290,7 @@ export default function App() {
   }
 
   function handleLoginSuccess(response) {
-    localStorage.setItem('tapecloud_token', response.token);
+    // Solo perfil UI; el JWT queda en cookie httpOnly (no toca JS).
     localStorage.setItem('tapecloud_email', response.email);
     localStorage.setItem('tapecloud_display_name', response.displayName || response.email.split('@')[0]);
     if (response.avatarDataUri) {

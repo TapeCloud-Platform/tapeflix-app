@@ -1,7 +1,17 @@
 import { useState } from 'react';
 import { Drawer, Button, Chip } from '@heroui/react';
 
-/** Drawer lateral con las categorías declaradas por el backend para cada app. */
+const SECTION_HINTS = {
+  top: 'Lo más popular ahora.',
+  genre: 'Filtrá por género musical o cinematográfico.',
+  country: 'Filtrá por país de origen.',
+  artist: 'Buscá un actor, director o artista. Acepta texto libre.',
+  people: 'Buscá actores y directores por nombre.',
+  album: 'Buscá un álbum por título. Acepta texto libre.',
+  search: 'Búsqueda libre por título.',
+};
+
+/** Drawer lateral izquierdo con las categorías declaradas por el backend para cada app. */
 export default function CategoryDrawer({ open, filters, active, onApply, onClose }) {
   const [queries, setQueries] = useState({});
 
@@ -36,13 +46,26 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
     return filter.options.filter((option) => option.label.toLowerCase().includes(query));
   }
 
+  const activeFilter = filters.find((filter) => filter.type === active.type);
+  const activeOption = activeFilter?.options.find((option) => option.value === active.value);
+  const activeSummary =
+    active.type === 'top'
+      ? 'Inicio'
+      : `${activeFilter?.label ?? active.type}${activeOption ? `: ${activeOption.label}` : active.value ? `: ${active.value}` : ''}`;
+
+  // "Inicio" primero, después el resto en el orden del backend.
+  const ordered = [...filters].sort((a, b) => (a.type === 'top' ? -1 : b.type === 'top' ? 1 : 0));
+
   return (
     <Drawer.Root isOpen={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <Drawer.Backdrop className="drawer-backdrop">
-        <Drawer.Content placement="right">
-          <Drawer.Dialog className="drawer" aria-label="Categorías">
+        <Drawer.Content placement="left">
+          <Drawer.Dialog className="drawer" aria-label="Explorar categorías">
             <div className="drawer__head">
-              <h2>Explorar</h2>
+              <div>
+                <h2>Explorar</h2>
+                <p className="drawer__active">Viendo: <strong>{activeSummary}</strong></p>
+              </div>
               <div className="drawer__head-actions">
                 {active.type !== 'top' && (
                   <Button variant="ghost" className="drawer__clear" onClick={() => apply('top', '')}>
@@ -56,13 +79,21 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
             </div>
 
             <div className="drawer__body">
-              {filters.map((filter) => {
+              {ordered.map((filter) => {
                 const options = visibleOptions(filter);
                 const searchable = filter.options.length > 0 || filter.freeText;
 
                 return (
                   <section key={filter.type} className="drawer__section">
-                    <h3>{filter.label}</h3>
+                    <div className="drawer__section-head">
+                      <h3>{filter.label}</h3>
+                      {filter.options.length > 0 && (
+                        <span className="drawer__count">{filter.options.length}</span>
+                      )}
+                    </div>
+                    {SECTION_HINTS[filter.type] && (
+                      <p className="drawer__hint">{SECTION_HINTS[filter.type]}</p>
+                    )}
 
                     {filter.type === 'top' && (
                       <button
@@ -70,7 +101,7 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
                         className={`drawer__item ${active.type === 'top' ? 'is-active' : ''}`}
                         onClick={() => apply('top', '')}
                       >
-                        Ver populares
+                        Ver inicio
                       </button>
                     )}
 
@@ -87,6 +118,7 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
                           onChange={(event) =>
                             setQueries((current) => ({ ...current, [filter.type]: event.target.value }))
                           }
+                          aria-label={`Buscar en ${filter.label}`}
                         />
                         <Button type="submit" className="submit-review-btn" size="sm">
                           Ir
