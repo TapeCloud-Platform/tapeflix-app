@@ -2505,7 +2505,8 @@ h1, h2, h3, p {
 /* ============ Header unificado: topbar + nav grande + búsqueda agrupada ============ */
 /* Header full-bleed: el fondo ocupa todo el ancho, el contenido va centrado. */
 .app-header {
-  margin: 0 0 20px;
+  width: 100vw;
+  margin: 0 0 20px calc(50% - 50vw);
   padding: 0;
 }
 
@@ -2513,6 +2514,11 @@ h1, h2, h3, p {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+}
+
+/* Sin scroll horizontal de página (el sticky del header sigue funcionando con clip) */
+body {
+  overflow-x: clip;
 }
 .app-header__topbar {
   display: flex;
@@ -2856,7 +2862,10 @@ h1, h2, h3, p {
 .drawer__body,
 .drawer__chips,
 .header-search__panel,
-.entity-tabs {
+.entity-tabs,
+.top-slider__track,
+.stack-shelf__track,
+.genre-row__track {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -2865,7 +2874,10 @@ h1, h2, h3, p {
 .drawer__body::-webkit-scrollbar,
 .drawer__chips::-webkit-scrollbar,
 .header-search__panel::-webkit-scrollbar,
-.entity-tabs::-webkit-scrollbar {
+.entity-tabs::-webkit-scrollbar,
+.top-slider__track::-webkit-scrollbar,
+.stack-shelf__track::-webkit-scrollbar,
+.genre-row__track::-webkit-scrollbar {
   display: none;
   width: 0;
   height: 0;
@@ -2904,16 +2916,4 @@ h1, h2, h3, p {
   max-width: 180px;
   height: 52px;
   object-fit: contain;
-}
-
-.account-menu__trigger-guest {
-  width: auto;
-  max-width: 64px;
-  height: 26px;
-  object-fit: contain;
-}
-
-.user-menu__avatar--guest {
-  object-fit: contain;
-  padding: 4px;
 }
