@@ -16,7 +16,6 @@ export default function SettingsMenu({
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
-  const [configOpen, setConfigOpen] = useState(false);
 
   const [reviewsOpen, setReviewsOpen] = useState(false);
   const [stats, setStats] = useState(null);
@@ -142,63 +141,45 @@ export default function SettingsMenu({
             </div>
           )}
 
-          {/* ---- Sección Configuración (colapsable) ---- */}
-          <button
-            type="button"
-            className="account-menu__section-toggle account-menu__section-toggle--spaced"
-            onClick={() => setConfigOpen((open) => !open)}
-            aria-expanded={configOpen}
-          >
-            Configuración
-            <span className={`user-menu__chevron ${configOpen ? 'is-open' : ''}`}>›</span>
-          </button>
+          {/* ---- Apariencia ---- */}
+          <p className="account-menu__section-title account-menu__section-title--spaced">Apariencia</p>
+          <div className="theme-toggle" role="group" aria-label="Elegir tema">
+            <button
+              type="button"
+              className={`theme-toggle__option ${theme === 'dark' ? 'is-active' : ''}`}
+              onClick={() => onThemeChange('dark')}
+              aria-pressed={theme === 'dark'}
+            >
+              Oscuro
+            </button>
+            <button
+              type="button"
+              className={`theme-toggle__option ${theme === 'light' ? 'is-active' : ''}`}
+              onClick={() => onThemeChange('light')}
+              aria-pressed={theme === 'light'}
+            >
+              Claro
+            </button>
+          </div>
 
-          {configOpen && (
-            <>
-              <a className="settings-menu__item" href={portalUrl}>
-                Editar cuenta en el portal
-                <span aria-hidden="true">→</span>
-              </a>
-              <p className="settings-menu__hint">
-                Usuario, contraseña y verificación en dos pasos se manejan desde el portal de TapeCloud.
-              </p>
+          {/* ---- Cuenta ---- */}
+          <p className="account-menu__section-title account-menu__section-title--spaced">Cuenta</p>
+          <a className="settings-menu__item" href={portalUrl}>
+            Gestionar perfil en TapeCloud
+            <span aria-hidden="true">→</span>
+          </a>
+          <p className="settings-menu__hint">
+            Usuario, contraseña y verificación en dos pasos se manejan desde el portal.
+          </p>
 
-              <h3 className="settings-card__title">Apariencia</h3>
-              <p className="settings-menu__hint">Elegí cómo se ve TapeFlix en este dispositivo.</p>
-              <div className="theme-toggle" role="group" aria-label="Elegir tema">
-                <button
-                  type="button"
-                  className={`theme-toggle__option ${theme === 'dark' ? 'is-active' : ''}`}
-                  onClick={() => onThemeChange('dark')}
-                  aria-pressed={theme === 'dark'}
-                >
-                  Oscuro
-                </button>
-                <button
-                  type="button"
-                  className={`theme-toggle__option ${theme === 'light' ? 'is-active' : ''}`}
-                  onClick={() => onThemeChange('light')}
-                  aria-pressed={theme === 'light'}
-                >
-                  Claro
-                </button>
-              </div>
-
-              <button type="button" className="settings-menu__item" disabled style={{ marginTop: 14 }}>
-                Contacto y soporte
-                <span className="settings-menu__badge">Próximamente</span>
-              </button>
-
-              {sessionUser && (
-                <button
-                  type="button"
-                  className="settings-menu__item settings-menu__item--danger"
-                  onClick={handleLogoutRequest}
-                >
-                  Cerrar sesión
-                </button>
-              )}
-            </>
+          {sessionUser && (
+            <button
+              type="button"
+              className="settings-menu__item settings-menu__item--danger"
+              onClick={handleLogoutRequest}
+            >
+              Cerrar sesión
+            </button>
           )}
         </Dropdown.Popover>
       </Dropdown.Root>
