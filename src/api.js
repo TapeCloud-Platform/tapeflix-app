@@ -1,10 +1,14 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
-async function request(path) {
+// Sesión por cookie httpOnly (tapecloud_token). El JWT ya no toca JS:
+// todos los fetch usan credentials:include y el backend lee la cookie.
+// El parámetro token legacy se ignora (compat con componentes sin migrar).
+
+async function request(path, opts = {}) {
   const response = await fetch(`${API_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    ...opts,
   });
 
   if (!response.ok) {
@@ -23,6 +27,7 @@ async function request(path) {
 async function postJson(path, payload) {
   const response = await fetch(`${API_URL}${path}`, {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
@@ -64,7 +69,8 @@ export async function resendVerificationCode(email) {
 
 export async function findContentByExternalId(externalId) {
   const response = await fetch(
-    `${API_URL}/api/content/lookup?sourceApp=tapeflix&sourceType=movie&externalId=${encodeURIComponent(externalId)}`
+    `${API_URL}/api/content/lookup?sourceApp=tapeflix&sourceType=movie&externalId=${encodeURIComponent(externalId)}`,
+    { credentials: 'include' }
   );
   if (response.status === 204) {
     return null;
@@ -76,13 +82,11 @@ export async function findContentByExternalId(externalId) {
 }
 
 /** Las películas del descubrimiento llegan de TMDb en vivo; hay que registrarlas para poder reseñarlas. */
-export async function registerContent(token, movie) {
+export async function registerContent(_token, movie) {
   const response = await fetch(`${API_URL}/api/content`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       sourceApp: 'tapeflix',
       sourceType: 'movie',
@@ -102,31 +106,30 @@ export async function registerContent(token, movie) {
   return body;
 }
 
-export async function getReviews(contentId) {
-  const token = localStorage.getItem('tapecloud_token');
-  const headers = { 'Content-Type': 'application/json' };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+export async function getReviews(contentId, { page = 0, size = 20 } = {}) {
+  const params = new URLSearchParams({ page: String(page), size: String(size) });
+  if (contentId) {
+    params.set('contentId', contentId);
+  } else {
+    params.set('sourceApp', 'tapeflix');
   }
 
-  const path = contentId
-    ? `/api/reviews?contentId=${contentId}`
-    : '/api/reviews?sourceApp=tapeflix';
-
-  const response = await fetch(`${API_URL}${path}`, { headers });
+  const response = await fetch(`${API_URL}/api/reviews?${params}`, {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+  });
   if (!response.ok) {
     throw new Error('Error al cargar las reseñas');
   }
-  return response.json();
+  const body = await response.json();
+  return Array.isArray(body) ? body : body.content ?? [];
 }
 
-export async function createReview(contentId, token, reviewData) {
+export async function createReview(contentId, _token, reviewData) {
   const response = await fetch(`${API_URL}/api/reviews/content/${contentId}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(reviewData),
   });
 
@@ -139,13 +142,11 @@ export async function createReview(contentId, token, reviewData) {
   return body;
 }
 
-export async function toggleReviewLike(reviewId, token) {
+export async function toggleReviewLike(reviewId) {
   const response = await fetch(`${API_URL}/api/reviews/${reviewId}/like`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
   });
 
   const body = await response.json().catch(() => ({}));
@@ -157,12 +158,10 @@ export async function toggleReviewLike(reviewId, token) {
   return body;
 }
 
-export async function deleteReview(reviewId, token) {
+export async function deleteReview(reviewId) {
   const response = await fetch(`${API_URL}/api/reviews/${reviewId}`, {
     method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: 'include',
   });
 
   if (!response.ok && response.status !== 204) {
@@ -171,13 +170,11 @@ export async function deleteReview(reviewId, token) {
   }
 }
 
-export async function updateReview(reviewId, token, reviewData) {
+export async function updateReview(reviewId, _token, reviewData) {
   const response = await fetch(`${API_URL}/api/reviews/${reviewId}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(reviewData),
   });
 
@@ -192,17 +189,16 @@ export async function updateReview(reviewId, token, reviewData) {
   return body;
 }
 
-export async function getComments(reviewId) {
-  return request(`/api/comments?reviewId=${reviewId}`);
+export async function getComments(reviewId, { page = 0, size = 20 } = {}) {
+  const body = await request(`/api/comments?reviewId=${reviewId}&page=${page}&size=${size}`);
+  return Array.isArray(body) ? body : body.content ?? [];
 }
 
-export async function createComment(reviewId, token, commentData) {
+export async function createComment(reviewId, _token, commentData) {
   const response = await fetch(`${API_URL}/api/comments/review/${reviewId}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(commentData),
   });
 
@@ -215,12 +211,10 @@ export async function createComment(reviewId, token, commentData) {
   return body;
 }
 
-export async function deleteComment(commentId, token) {
+export async function deleteComment(commentId) {
   const response = await fetch(`${API_URL}/api/comments/${commentId}`, {
     method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: 'include',
   });
 
   if (!response.ok && response.status !== 204) {
@@ -229,15 +223,16 @@ export async function deleteComment(commentId, token) {
   }
 }
 
-async function authedRequest(path, method, token, payload) {
-  const response = await fetch(`${API_URL}${path}`, {
+async function authedRequest(path, method, _token, payload) {
+  const init = {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
-  });
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (payload !== undefined) {
+    init.body = JSON.stringify(payload);
+  }
+  const response = await fetch(`${API_URL}${path}`, init);
 
   if (response.status === 204) {
     return null;
@@ -254,29 +249,30 @@ async function authedRequest(path, method, token, payload) {
   return body;
 }
 
-export async function getMyReviewStats(token) {
-  return authedRequest('/api/reviews/me/stats', 'GET', token);
+export async function getMyReviewStats() {
+  return authedRequest('/api/reviews/me/stats', 'GET');
 }
 
-/** Invalida el JWT en el backend (bump de tokenVersion). 204 = sin contenido. */
-export async function logout(token) {
-  return authedRequest('/api/auth/logout', 'POST', token);
+/** Invalida la sesión en el backend (bump de tokenVersion + limpia cookie). 204 = sin contenido. */
+export async function logout() {
+  return authedRequest('/api/auth/logout', 'POST');
+}
+
+export async function getMe() {
+  return authedRequest('/api/auth/me', 'GET');
 }
 
 /**
- * Valida la sesión contra el backend. Devuelve false solo con 401 (token
- * revocado: logout desde otra app, cambio de contraseña, etc). Con error de
- * red se asume válida para no cerrar sesiones por estar offline.
+ * Valida la sesión contra el backend (cookie). Devuelve false solo con 401
+ * (logout desde otra app, cambio de contraseña, etc). Con error de red se
+ * asume válida para no cerrar sesiones por estar offline.
  */
-export async function checkSession(token) {
+export async function checkSession() {
   let response;
   try {
-    response = await fetch(`${API_URL}/api/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    response = await fetch(`${API_URL}/api/auth/me`, { credentials: 'include' });
   } catch {
     return true;
   }
   return response.status !== 401;
 }
-

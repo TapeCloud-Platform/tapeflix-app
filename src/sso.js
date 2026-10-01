@@ -3,17 +3,15 @@ const TAPEFLIX_URL = import.meta.env.VITE_TAPEFLIX_URL || 'http://localhost:5174
 const TAPEBEAT_URL = import.meta.env.VITE_TAPEBEAT_URL || 'http://localhost:5175';
 
 /**
- * Loguea la sesión también en el portal, sin sacar al usuario de esta app:
- * un iframe invisible carga el portal con los mismos datos de sesión por
- * query params, y el portal los guarda en su propio localStorage (otro
- * origen, así que no se puede escribir ahí directamente).
+ * Sincroniza solo perfil UI (email/display/avatar/theme) al portal.
+ * La auth viaja por cookie httpOnly del API (mismo dominio API), así que el
+ * JWT ya NO pasa por URL ni toca localStorage/iframes.
  */
-export function syncSessionToPortal({ token, email, displayName, avatarDataUri }, theme) {
+export function syncSessionToPortal({ email, displayName, avatarDataUri }, theme) {
   const params = new URLSearchParams({
-    sso_token: token,
-    sso_email: email,
+    sso_email: email || '',
     sso_display_name: displayName || '',
-    sso_theme: theme,
+    sso_theme: theme || '',
   });
   if (avatarDataUri) {
     params.set('sso_avatar', avatarDataUri);
