@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import tapecloudMarkWhite from '../assets/tapecloud-mark-white.png';
-import tapecloudMarkDark from '../assets/tapecloud-mark-dark.png';
+import tapecloudLogoLight from '../assets/tapecloud-logo-light.png';
+import tapecloudLogoDark from '../assets/tapecloud-logo-dark.png';
 
 /** El modal solo se cierra con la cruz: ni clic afuera ni Escape. */
 export default function AuthModal({ onClose, theme, children }) {
@@ -20,7 +20,7 @@ export default function AuthModal({ onClose, theme, children }) {
         <div className="auth-modal-brand">
           <img
             className="auth-modal-logo"
-            src={theme === 'light' ? tapecloudMarkDark : tapecloudMarkWhite}
+            src={theme === 'light' ? tapecloudLogoLight : tapecloudLogoDark}
             alt=""
           />
           <span className="eyebrow">TapeCloud</span>

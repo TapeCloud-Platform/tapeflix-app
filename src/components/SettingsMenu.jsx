@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Dropdown } from '@heroui/react';
 import { getMyReviewStats } from '../api';
 import ConfirmDialog from './ConfirmDialog';
+import tapecloudLogoLight from '../assets/tapecloud-logo-light.png';
+import tapecloudLogoDark from '../assets/tapecloud-logo-dark.png';
 
 /** Menú de cuenta con el mismo lenguaje que el portal (secciones 01/02). */
 export default function SettingsMenu({
@@ -56,6 +58,12 @@ export default function SettingsMenu({
         <Dropdown.Trigger className="account-menu__trigger" aria-label="Cuenta de usuario">
           {sessionUser?.avatarDataUri ? (
             <img className="account-menu__trigger-avatar" src={sessionUser.avatarDataUri} alt="" />
+          ) : !sessionUser ? (
+            <img
+              className="account-menu__trigger-guest"
+              src={theme === 'light' ? tapecloudLogoLight : tapecloudLogoDark}
+              alt="TapeCloud"
+            />
           ) : (
             <span className="account-trigger__fallback">{initial}</span>
           )}
@@ -70,6 +78,12 @@ export default function SettingsMenu({
               <img
                 className="user-menu__avatar user-menu__avatar--large"
                 src={sessionUser.avatarDataUri}
+                alt=""
+              />
+            ) : !sessionUser ? (
+              <img
+                className="user-menu__avatar user-menu__avatar--large user-menu__avatar--guest"
+                src={theme === 'light' ? tapecloudLogoLight : tapecloudLogoDark}
                 alt=""
               />
             ) : (

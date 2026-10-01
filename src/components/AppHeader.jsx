@@ -3,8 +3,8 @@ import { Button, SearchField } from '@heroui/react';
 import SettingsMenu from './SettingsMenu';
 import AppSwitcher from './AppSwitcher';
 import LoadingIcon from './LoadingIcon';
-import tapeflixIcon from '../assets/tapeflix-icon.png';
-import tapeflixIconLight from '../assets/tapeflix-icon-light.png';
+import tapeflixLogoLight from '../assets/tapeflix-logo-light.png';
+import tapeflixLogoDark from '../assets/tapeflix-logo-dark.png';
 
 const NAV_GENRE_COUNT = 8;
 
@@ -46,7 +46,7 @@ export default function AppHeader({
   const [highlight, setHighlight] = useState(-1);
   const inputRef = useRef(null);
 
-  const logoSrc = theme === 'light' ? tapeflixIconLight : tapeflixIcon;
+  const logoSrc = theme === 'light' ? tapeflixLogoLight : tapeflixLogoDark;
 
   useEffect(() => {
     if (!searchOpen) {

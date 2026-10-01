@@ -1,23 +1,25 @@
 import { Dropdown } from '@heroui/react';
-import tapecloudIconDark from '../assets/tapecloud-icon-dark.png';
-import tapecloudIconLight from '../assets/tapecloud-icon-light.png';
-import tapebeatIcon from '../assets/tapebeat-icon.png';
-import tapebeatIconLight from '../assets/tapebeat-icon-light.png';
-import tapeflixIcon from '../assets/tapeflix-icon.png';
-import tapeflixIconLight from '../assets/tapeflix-icon-light.png';
+import tapecloudLogoDark from '../assets/tapecloud-logo-dark.png';
+import tapecloudLogoLight from '../assets/tapecloud-logo-light.png';
+import tapebeatLogoDark from '../assets/tapebeat-logo-dark.png';
+import tapebeatLogoLight from '../assets/tapebeat-logo-light.png';
+import tapeflixLogoDark from '../assets/tapeflix-logo-dark.png';
+import tapeflixLogoLight from '../assets/tapeflix-logo-light.png';
 
 const PORTAL_URL = import.meta.env.VITE_PORTAL_URL || 'http://localhost:5173';
 const TAPEFLIX_URL = import.meta.env.VITE_TAPEFLIX_URL || 'http://localhost:5174';
 const TAPEBEAT_URL = import.meta.env.VITE_TAPEBEAT_URL || 'http://localhost:5175';
 
+/**
+ * Link entre apps: solo perfil UI por query (email/display/avatar/tema).
+ * La auth viaja por cookie httpOnly del API, el JWT ya no pasa por URL.
+ */
 function buildAppUrl(baseUrl, theme) {
-  const token = localStorage.getItem('tapecloud_token');
   const email = localStorage.getItem('tapecloud_email');
   const displayName = localStorage.getItem('tapecloud_display_name');
   const avatar = localStorage.getItem('tapecloud_avatar');
   const params = new URLSearchParams({ sso_theme: theme });
-  if (token && email) {
-    params.set('sso_token', token);
+  if (email) {
     params.set('sso_email', email);
     params.set('sso_display_name', displayName || '');
     if (avatar) {
@@ -30,9 +32,9 @@ function buildAppUrl(baseUrl, theme) {
 /** Selector de apps del ecosistema, activado desde el logo del header. */
 export default function AppSwitcher({ current, theme, logoSrc, appName }) {
   const apps = [
-    { id: 'tapecloud', name: 'TapeCloud', url: PORTAL_URL, icon: theme === 'light' ? tapecloudIconLight : tapecloudIconDark },
-    { id: 'tapeflix', name: 'TapeFlix', url: TAPEFLIX_URL, icon: theme === 'light' ? tapeflixIconLight : tapeflixIcon },
-    { id: 'tapebeat', name: 'TapeBeat', url: TAPEBEAT_URL, icon: theme === 'light' ? tapebeatIconLight : tapebeatIcon },
+    { id: 'tapecloud', name: 'TapeCloud', url: PORTAL_URL, icon: theme === 'light' ? tapecloudLogoLight : tapecloudLogoDark },
+    { id: 'tapeflix', name: 'TapeFlix', url: TAPEFLIX_URL, icon: theme === 'light' ? tapeflixLogoLight : tapeflixLogoDark },
+    { id: 'tapebeat', name: 'TapeBeat', url: TAPEBEAT_URL, icon: theme === 'light' ? tapebeatLogoLight : tapebeatLogoDark },
   ];
 
   return (
