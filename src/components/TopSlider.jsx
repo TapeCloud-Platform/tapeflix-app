@@ -1,5 +1,4 @@
 import { useRef } from 'react';
-import { Button } from '@heroui/react';
 import MovieCard from './MovieCard';
 
 const SCROLL_STEP = 380;
@@ -20,33 +19,28 @@ export default function TopSlider({ title, movies }) {
     <div className="top-slider">
       <div className="top-slider__head">
         <h3 className="subsection-title">{title}</h3>
-        <div className="top-slider__nav">
-          <Button
-            isIconOnly
-            size="sm"
-            variant="ghost"
-            className="top-slider__arrow"
-            onClick={() => scrollBy(-SCROLL_STEP)}
-            aria-label="Anterior"
-          >
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Button>
-          <Button
-            isIconOnly
-            size="sm"
-            variant="ghost"
-            className="top-slider__arrow"
-            onClick={() => scrollBy(SCROLL_STEP)}
-            aria-label="Siguiente"
-          >
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Button>
-        </div>
       </div>
+
+      <button
+        type="button"
+        className="top-slider__arrow top-slider__arrow--prev"
+        onClick={() => scrollBy(-SCROLL_STEP)}
+        aria-label="Anterior"
+      >
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        className="top-slider__arrow top-slider__arrow--next"
+        onClick={() => scrollBy(SCROLL_STEP)}
+        aria-label="Siguiente"
+      >
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
 
       <div className="top-slider__track" ref={trackRef}>
         {movies.map((movie, index) => (
