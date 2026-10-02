@@ -3050,6 +3050,68 @@ body {
   margin-bottom: 18px;
 }
 
+/* Pie sólido del ecosistema */
+.app-footer {
+  margin: 48px -20px 0;
+  border-top: 2px solid transparent;
+  border-image: var(--brand-gradient) 1;
+  background: var(--panel-bg);
+}
+
+.app-footer__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.app-footer__logo {
+  width: auto;
+  max-width: 150px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.app-footer__legal {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.app-footer__note {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  max-width: 420px;
+}
+
+.app-footer__nav {
+  display: flex;
+  gap: 18px;
+  margin-top: 6px;
+}
+
+.app-footer__nav a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.app-footer__nav a:hover {
+  color: var(--ink);
+}
+
+.app-footer__nav a[aria-current='page'] {
+  color: var(--accent);
+  pointer-events: none;
+}
+
 .user-profile__stats {
   list-style: none;
   margin: 0;
