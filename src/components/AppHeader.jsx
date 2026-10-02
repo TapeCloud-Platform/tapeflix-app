@@ -132,13 +132,16 @@ export default function AppHeader({
           />
         </div>
 
-        <button type="button" className="app-header__brand" onClick={onHome} aria-label="Volver al inicio">
-          <img className="app-header__logo" src={logoSrc} alt="" aria-hidden="true" />
-          <span className="app-header__brand-text">
-            <span className="app-header__wordmark">{appName}</span>
-            <span className="app-header__tagline">{tagline}</span>
-          </span>
-        </button>
+        <div className="app-header__brand-wrap">
+          <button type="button" className="app-header__brand" onClick={onHome} aria-label="Volver al inicio">
+            <img className="app-header__logo" src={logoSrc} alt="" aria-hidden="true" />
+            <span className="app-header__brand-text">
+              <span className="app-header__wordmark">{appName}</span>
+              <span className="app-header__tagline">{tagline}</span>
+            </span>
+          </button>
+          <AppSwitcher current="tapeflix" theme={theme} />
+        </div>
 
         <div className="app-header__actions">
           <form className={`header-search ${searchOpen ? 'is-open' : ''}`} onSubmit={submitSearch} role="search">
@@ -147,6 +150,7 @@ export default function AppHeader({
                 <SearchField.SearchIcon />
                 <SearchField.Input
                   ref={inputRef}
+                  name="q"
                   placeholder="Buscar películas, personas, usuarios..."
                   onFocus={() => setSearchOpen(true)}
                   onBlur={() => {
@@ -240,8 +244,6 @@ export default function AppHeader({
               <line x1="16.5" y1="16.5" x2="21" y2="21" strokeLinecap="round" />
             </svg>
           </Button>
-
-          <AppSwitcher current="tapeflix" theme={theme} logoSrc={logoSrc} appName="TapeFlix" />
         </div>
       </div>
 

@@ -2883,6 +2883,35 @@ body {
   height: 0;
 }
 
+/* Switch de marca: flechita junto al logo para ir a los otros sistemas */
+.app-header__brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.brand-switcher__trigger {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+}
+
+.brand-switcher__trigger:hover,
+.brand-switcher__trigger[aria-expanded='true'] {
+  color: var(--ink);
+  background: var(--surface-bg-strong);
+  border-color: var(--border-soft);
+}
+
 /* Logos de marca (apaisados): altura fija, ancho automático */
 .app-header__logo {
   width: auto;

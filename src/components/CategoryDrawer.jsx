@@ -109,6 +109,7 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
                       <form className="drawer__form" onSubmit={(event) => submitQuery(event, filter)}>
                         <input
                           type="search"
+                          name={`buscar-${filter.type}`}
                           placeholder={
                             filter.freeText
                               ? `Buscar ${filter.label.toLowerCase()}...`

@@ -29,35 +29,32 @@ function buildAppUrl(baseUrl, theme) {
   return `${baseUrl}?${params.toString()}`;
 }
 
-/** Selector de apps del ecosistema, activado desde el logo del header. */
-export default function AppSwitcher({ current, theme, logoSrc, appName }) {
+/**
+ * Flechita junto a la marca: salta a los otros sistemas del ecosistema.
+ * La app actual no aparece (ya estás en ella).
+ */
+export default function AppSwitcher({ current, theme }) {
   const apps = [
     { id: 'tapecloud', name: 'TapeCloud', url: PORTAL_URL, icon: theme === 'light' ? tapecloudLogoLight : tapecloudLogoDark },
     { id: 'tapeflix', name: 'TapeFlix', url: TAPEFLIX_URL, icon: theme === 'light' ? tapeflixLogoLight : tapeflixLogoDark },
     { id: 'tapebeat', name: 'TapeBeat', url: TAPEBEAT_URL, icon: theme === 'light' ? tapebeatLogoLight : tapebeatLogoDark },
-  ];
+  ].filter((app) => app.id !== current);
 
   return (
     <Dropdown.Root>
-      <Dropdown.Trigger className="app-switcher__trigger" aria-label={`${appName} — cambiar de app`}>
-        <img className="app-switcher__logo" src={logoSrc} alt={appName} />
+      <Dropdown.Trigger className="brand-switcher__trigger" aria-label="Ir a otro sistema">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </Dropdown.Trigger>
-      <Dropdown.Popover className="app-switcher__panel" placement="bottom end" offset={10}>
-        <p className="app-switcher__title">Ecosistema TapeCloud</p>
-        {apps.map((app) =>
-          app.id === current ? (
-            <div key={app.id} className="app-switcher__item is-current">
-              <img src={app.icon} alt="" aria-hidden="true" />
-              <span>{app.name}</span>
-              <span className="app-switcher__badge">Actual</span>
-            </div>
-          ) : (
-            <a key={app.id} className="app-switcher__item" href={buildAppUrl(app.url, theme)}>
-              <img src={app.icon} alt="" aria-hidden="true" />
-              <span>{app.name}</span>
-            </a>
-          )
-        )}
+      <Dropdown.Popover className="app-switcher__panel" placement="bottom start" offset={10}>
+        <p className="app-switcher__title">Ir a otro sistema</p>
+        {apps.map((app) => (
+          <a key={app.id} className="app-switcher__item" href={buildAppUrl(app.url, theme)}>
+            <img src={app.icon} alt="" aria-hidden="true" />
+            <span>{app.name}</span>
+          </a>
+        ))}
       </Dropdown.Popover>
     </Dropdown.Root>
   );
