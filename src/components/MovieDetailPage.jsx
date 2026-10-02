@@ -211,6 +211,7 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
           setEditingId(null);
         }
         await loadReviews(contentId);
+        setFormSuccess('Reseña eliminada.');
       } else {
         await deleteComment(pendingDelete.id, token);
         setCommentsByReview((current) => ({
@@ -218,6 +219,7 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
           [pendingDelete.reviewId]: (current[pendingDelete.reviewId] || []).filter((c) => c.id !== pendingDelete.id),
         }));
         await loadReviews(contentId);
+        setFormSuccess('Comentario eliminado.');
       }
     } catch (err) {
       setFormError(err.message || 'No se pudo eliminar.');
@@ -309,7 +311,6 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
           ← Catálogo
         </button>
         <div>
-          <p className="eyebrow">Detalles de película</p>
           <h1>{movie.title}</h1>
         </div>
       </header>
@@ -365,7 +366,6 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
           <div className="review-panel">
             <div className="review-panel__list">
               {formError && !formOpen && <p className="error-text">{formError}</p>}
-              {formSuccess && !formOpen && !editingId && <p className="success-text">{formSuccess}</p>}
               {reviews.length === 0 ? (
                 <p className="no-reviews">No hay reseñas para esta película aún.</p>
               ) : (
