@@ -16,7 +16,7 @@ import {
 import StarRating from './StarRating';
 import AlreadyReviewedDialog from './AlreadyReviewedDialog';
 import ConfirmDialog from './ConfirmDialog';
-import { PencilIcon, TrashIcon } from './icons';
+import { PencilIcon, TrashIcon, EyeIcon, EyeOffIcon, HeartIcon, MessageIcon, CalendarIcon } from './icons';
 import { formatFullDate, formatYear } from '../utils/format';
 import { findProfanity } from '../utils/profanity';
 import {
@@ -343,7 +343,7 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                   </span>
                 )}
                 {formatFullDate(releaseDate) && (
-                  <span className="stat-pill">📅 {formatFullDate(releaseDate)}</span>
+                  <span className="stat-pill"><CalendarIcon size={15} /> {formatFullDate(releaseDate)}</span>
                 )}
                 {!formatFullDate(releaseDate) && formatYear(releaseDate) && (
                   <span className="stat-pill">{formatYear(releaseDate)}</span>
@@ -377,6 +377,18 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                   <div className="review-header">
                     <strong>{review.title}</strong>
                     <div className="modal-review-actions">
+                      {review.isSpoiler && (
+                        <button
+                          type="button"
+                          className={`spoiler-toggle${revealedSpoilers[review.id] ? ' is-revealed' : ''}`}
+                          onClick={() => toggleSpoilerReveal(review.id)}
+                          aria-pressed={Boolean(revealedSpoilers[review.id])}
+                          title={revealedSpoilers[review.id] ? 'Ocultar spoiler' : 'Mostrar spoiler'}
+                        >
+                          {revealedSpoilers[review.id] ? <EyeIcon size={14} /> : <EyeOffIcon size={14} />}
+                          <span>{revealedSpoilers[review.id] ? 'Ocultar' : 'Spoiler'}</span>
+                        </button>
+                      )}
                       <StarRating value={review.rating} size="sm" />
                       {review.ownedByCurrentUser && editingId !== review.id && (
                         <>
@@ -400,10 +412,6 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                       )}
                     </div>
                   </div>
-
-                  {review.isSpoiler && (
-                    <p className="spoiler-badge">⚠️ Contiene spoiler</p>
-                  )}
 
                   {editingId === review.id ? (
                     <form className="review-form review-form--edit" onSubmit={handleSubmitEdit}>
@@ -479,26 +487,10 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                       <p className="review-body" style={{ filter: 'blur(5px)', userSelect: 'none' }} aria-hidden="true">
                         {review.body}
                       </p>
-                      <button
-                        type="button"
-                        className="spoiler-reveal-btn"
-                        onClick={() => toggleSpoilerReveal(review.id)}
-                      >
-                        Mostrar spoiler
-                      </button>
                     </div>
                   ) : (
                     <>
                       <p className="review-body">{review.body}</p>
-                      {review.isSpoiler && revealedSpoilers[review.id] && (
-                        <button
-                          type="button"
-                          className="spoiler-reveal-btn"
-                          onClick={() => toggleSpoilerReveal(review.id)}
-                        >
-                          Ocultar spoiler
-                        </button>
-                      )}
                     </>
                   )}
                   <small className="review-author">
@@ -512,14 +504,14 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                       onClick={() => handleToggleLike(review.id)}
                       disabled={!sessionUser}
                     >
-                      ♥ {review.likesCount ?? 0}
+                      <HeartIcon size={15} filled={review.likedByCurrentUser} /> {review.likesCount ?? 0}
                     </button>
                     <button
                       type="button"
                       className="comments-toggle-btn"
                       onClick={() => toggleComments(review.id)}
                     >
-                      💬 {review.commentsCount ?? 0} comentarios
+                      <MessageIcon size={15} /> {review.commentsCount ?? 0} comentarios
                     </button>
                   </div>
 

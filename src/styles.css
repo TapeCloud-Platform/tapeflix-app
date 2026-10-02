@@ -2334,8 +2334,8 @@ h1, h2, h3, p {
 
 .top-slider__rank {
   position: absolute;
-  top: -6px;
-  left: -6px;
+  top: 2px;
+  left: 2px;
   z-index: 2;
   display: grid;
   place-items: center;
@@ -2449,9 +2449,18 @@ h1, h2, h3, p {
   padding: 0;
   font-size: 1.3rem;
   line-height: 1;
-  color: #fbbf24;
+  color: #9aa3b2;
   cursor: pointer;
   transition: transform 0.15s ease;
+}
+
+/* Relleno fraccional: solo se pinta hasta el valor (ej. 2.5 = 2 ámbar + mitad) */
+.star-rating__fill {
+  color: #fbbf24;
+}
+
+.star-rating__empty {
+  color: #9aa3b2;
 }
 
 .star-rating.is-readonly .star-rating__star {
@@ -2478,7 +2487,7 @@ h1, h2, h3, p {
 }
 
 .star-rating__half-bg {
-  color: #8a93a6;
+  color: #9aa3b2;
 }
 
 .star-rating__half-fg {
@@ -2488,6 +2497,55 @@ h1, h2, h3, p {
   overflow: hidden;
   color: #fbbf24;
   white-space: nowrap;
+}
+
+/* Toggle único de spoiler (reemplaza badge + botón separados) */
+.spoiler-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.spoiler-toggle:hover {
+  background: rgba(251, 191, 36, 0.22);
+}
+
+.spoiler-toggle.is-revealed {
+  border-color: var(--border-soft);
+  background: var(--surface-bg);
+  color: var(--text-secondary);
+}
+
+/* Iconos dentro de botones de reseña */
+.like-btn,
+.comments-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.like-btn.is-liked {
+  color: #f87171;
+}
+
+.like-btn.is-liked svg {
+  fill: currentColor;
+}
+
+.modal-review-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Chip de género flotando sobre el póster de la tarjeta */

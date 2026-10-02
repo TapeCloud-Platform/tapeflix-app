@@ -13,7 +13,7 @@ function starFill(value, index) {
 }
 
 function StarVisual({ fill }) {
-  if (fill >= 1) return <span aria-hidden="true">★</span>;
+  if (fill >= 1) return <span aria-hidden="true" className="star-rating__fill">★</span>;
   if (fill >= 0.5) {
     return (
       <span aria-hidden="true" className="star-rating__half">
@@ -22,7 +22,7 @@ function StarVisual({ fill }) {
       </span>
     );
   }
-  return <span aria-hidden="true">☆</span>;
+  return <span aria-hidden="true" className="star-rating__empty">★</span>;
 }
 
 export default function StarRating({ value = 0, onChange, size = 'md' }) {
