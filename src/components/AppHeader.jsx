@@ -251,9 +251,6 @@ export default function AppHeader({
 
       {navGenres.length > 0 && (
         <nav className="app-header__navbar" aria-label="Géneros">
-          <button type="button" className="app-header__nav-link app-header__nav-more" onClick={onOpenMenu}>
-            Más
-          </button>
           <button
             type="button"
             className={`app-header__nav-link ${active?.type === 'top' ? 'is-active' : ''}`}
@@ -273,6 +270,9 @@ export default function AppHeader({
               {option.label}
             </button>
           ))}
+          <button type="button" className="app-header__nav-link app-header__nav-more" onClick={onOpenMenu}>
+            Más
+          </button>
         </nav>
       )}
     </header>

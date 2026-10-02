@@ -59,7 +59,7 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
   return (
     <Drawer.Root isOpen={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <Drawer.Backdrop className="drawer-backdrop">
-        <Drawer.Content placement="left">
+        <Drawer.Content placement="right">
           <Drawer.Dialog className="drawer" aria-label="Explorar categorías">
             <div className="drawer__head">
               <div>
