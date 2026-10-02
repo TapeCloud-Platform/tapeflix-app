@@ -151,6 +151,7 @@ export default function AppHeader({
                 <SearchField.Input
                   ref={inputRef}
                   name="q"
+                  autoComplete="off"
                   placeholder="Buscar películas, personas, usuarios..."
                   onFocus={() => setSearchOpen(true)}
                   onBlur={() => {

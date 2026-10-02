@@ -128,22 +128,22 @@ export default function RegisterPage({ onSuccess, onGoToLogin }) {
       <form className="login-form" onSubmit={handleSubmit}>
         <TextField className="auth-field" value={email} onChange={setEmail} isRequired>
           <Label>Email</Label>
-          <Input type="email" placeholder="vos@ejemplo.com" autoFocus />
+          <Input type="email" placeholder="vos@ejemplo.com" autoFocus autoComplete="email" />
         </TextField>
 
         <TextField className="auth-field" value={username} onChange={setUsername} isRequired>
           <Label>Nombre de usuario</Label>
-          <Input placeholder="tu_usuario" maxLength={30} />
+          <Input placeholder="tu_usuario" maxLength={30} autoComplete="username" />
         </TextField>
 
         <TextField className="auth-field" value={password} onChange={setPassword} isRequired>
           <Label>Contraseña</Label>
-          <Input type="password" placeholder="Mínimo 8 caracteres" minLength={8} />
+          <Input type="password" placeholder="Mínimo 8 caracteres" minLength={8} autoComplete="new-password" />
         </TextField>
 
         <TextField className="auth-field" value={confirmPassword} onChange={setConfirmPassword} isRequired>
           <Label>Confirmar contraseña</Label>
-          <Input type="password" placeholder="Repetí la contraseña" minLength={8} />
+          <Input type="password" placeholder="Repetí la contraseña" minLength={8} autoComplete="new-password" />
         </TextField>
 
         {error && <p className="error">{error}</p>}

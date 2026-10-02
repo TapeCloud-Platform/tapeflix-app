@@ -104,7 +104,7 @@ export default function LoginPage({ onSuccess, onGoToRegister }) {
         <form className="login-form" onSubmit={handleVerify}>
           <TextField className="auth-field" value={verifyEmailAddress} onChange={setVerifyEmailAddress} isRequired>
             <Label>Email</Label>
-            <Input type="email" placeholder="vos@ejemplo.com" autoFocus />
+            <Input type="email" placeholder="vos@ejemplo.com" autoFocus autoComplete="email" />
           </TextField>
 
           <VerificationCodeInput value={code} onChange={setCode} disabled={loading} />
@@ -155,7 +155,7 @@ export default function LoginPage({ onSuccess, onGoToRegister }) {
               isRequired
             >
               <Label>Email o usuario</Label>
-              <Input placeholder="vos@ejemplo.com o tu_usuario" autoFocus />
+              <Input placeholder="vos@ejemplo.com o tu_usuario" autoFocus autoComplete="username" />
             </TextField>
 
             <TextField
@@ -165,7 +165,7 @@ export default function LoginPage({ onSuccess, onGoToRegister }) {
               isRequired
             >
               <Label>Contraseña</Label>
-              <Input type="password" placeholder="••••••••" />
+              <Input type="password" placeholder="••••••••" autoComplete="current-password" />
             </TextField>
           </>
         )}
