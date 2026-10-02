@@ -1629,7 +1629,7 @@ h1, h2, h3, p {
   padding: 40px 28px 32px;
   background-size: cover;
   background-position: center 20%;
-  border-radius: 24px;
+  border-radius: 0;
   overflow: hidden;
 }
 
