@@ -1,13 +1,33 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
-// Sesión por cookie httpOnly (tapecloud_token). El JWT ya no toca JS:
-// todos los fetch usan credentials:include y el backend lee la cookie.
-// El parámetro token legacy se ignora (compat con componentes sin migrar).
+// Sesion hibrida: cookie httpOnly (principal) + token en memoria (respaldo).
+// El token vive solo en memoria JS (se pierde al recargar, nunca toca storage):
+// si el navegador bloquea cookies de terceros, igual viaja por header Bearer.
+let memoryToken = null;
+
+export function setMemoryToken(token) {
+  memoryToken = token || null;
+}
+
+export function clearMemoryToken() {
+  memoryToken = null;
+}
+
+function authHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    ...(memoryToken ? { Authorization: `Bearer ${memoryToken}` } : {}),
+  };
+}
+
+// Sesión híbrida: cookie httpOnly (principal) + Bearer en memoria (respaldo).
+// Todos los fetch usan credentials:include; si hay token en memoria (login
+// de esta pestaña) también mandan Authorization. Ver setMemoryToken.
 
 async function request(path, opts = {}) {
   const response = await fetch(`${API_URL}${path}`, {
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     ...opts,
   });
 
@@ -28,7 +48,7 @@ async function postJson(path, payload) {
   const response = await fetch(`${API_URL}${path}`, {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify(payload),
   });
 
@@ -70,7 +90,7 @@ export async function resendVerificationCode(email) {
 export async function findContentByExternalId(externalId) {
   const response = await fetch(
     `${API_URL}/api/content/lookup?sourceApp=tapeflix&sourceType=movie&externalId=${encodeURIComponent(externalId)}`,
-    { credentials: 'include' }
+    { credentials: 'include', headers: authHeaders() }
   );
   if (response.status === 204) {
     return null;
@@ -86,7 +106,7 @@ export async function registerContent(_token, movie) {
   const response = await fetch(`${API_URL}/api/content`, {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify({
       sourceApp: 'tapeflix',
       sourceType: 'movie',
@@ -116,7 +136,7 @@ export async function getReviews(contentId, { page = 0, size = 20 } = {}) {
 
   const response = await fetch(`${API_URL}/api/reviews?${params}`, {
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
   });
   if (!response.ok) {
     throw new Error('Error al cargar las reseñas');
@@ -129,7 +149,7 @@ export async function createReview(contentId, _token, reviewData) {
   const response = await fetch(`${API_URL}/api/reviews/content/${contentId}`, {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify(reviewData),
   });
 
@@ -146,7 +166,7 @@ export async function toggleReviewLike(reviewId) {
   const response = await fetch(`${API_URL}/api/reviews/${reviewId}/like`, {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
   });
 
   const body = await response.json().catch(() => ({}));
@@ -174,7 +194,7 @@ export async function updateReview(reviewId, _token, reviewData) {
   const response = await fetch(`${API_URL}/api/reviews/${reviewId}`, {
     method: 'PUT',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify(reviewData),
   });
 
@@ -198,7 +218,7 @@ export async function createComment(reviewId, _token, commentData) {
   const response = await fetch(`${API_URL}/api/comments/review/${reviewId}`, {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify(commentData),
   });
 
@@ -227,7 +247,7 @@ async function authedRequest(path, method, _token, payload) {
   const init = {
     method,
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
   };
   if (payload !== undefined) {
     init.body = JSON.stringify(payload);
@@ -270,7 +290,7 @@ export async function getMe() {
 export async function checkSession() {
   let response;
   try {
-    response = await fetch(`${API_URL}/api/auth/me`, { credentials: 'include' });
+    response = await fetch(`${API_URL}/api/auth/me`, { credentials: 'include', headers: authHeaders() });
   } catch {
     return true;
   }

@@ -16,7 +16,7 @@ import AuthModal from './components/AuthModal';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import { discover, getFilters, searchAll } from './discoverApi';
-import { checkSession, getMe, logout } from './api';
+import { checkSession, getMe, logout, setMemoryToken, clearMemoryToken } from './api';
 import { useTheme } from './utils/theme';
 import { broadcastLogout, syncSessionToPortal } from './sso';
 
@@ -283,6 +283,7 @@ export default function App() {
     }
     // 2. Avisa al portal y a TapeBeat para que cierren su propio perfil UI (SSO).
     broadcastLogout(theme, TAPEFLIX_URL);
+    clearMemoryToken();
     localStorage.removeItem('tapecloud_email');
     localStorage.removeItem('tapecloud_display_name');
     localStorage.removeItem('tapecloud_avatar');
@@ -290,7 +291,9 @@ export default function App() {
   }
 
   function handleLoginSuccess(response) {
-    // Solo perfil UI; el JWT queda en cookie httpOnly (no toca JS).
+    // Híbrido: cookie httpOnly (la setea el backend) + token en memoria
+    // como respaldo si el navegador bloquea cookies de terceros.
+    setMemoryToken(response.token);
     localStorage.setItem('tapecloud_email', response.email);
     localStorage.setItem('tapecloud_display_name', response.displayName || response.email.split('@')[0]);
     if (response.avatarDataUri) {
