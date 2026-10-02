@@ -2652,20 +2652,20 @@ h1, h2, h3, p {
 }
 
 .genre-row__item {
-  flex: 0 0 170px;
+  flex: 0 0 168px;
 }
 
-.genre-row__item .movie-card--row {
-  width: 170px;
+.genre-row__item .movie-card--hero {
+  width: 168px;
 }
 
-.genre-row__item .movie-card--row .poster-container {
-  width: 170px;
-  height: 255px;
+.genre-row__item .movie-card--hero .poster-container {
+  width: 168px;
+  height: 252px;
   aspect-ratio: auto;
 }
 
-.genre-row__item .movie-card--row h3 {
+.genre-row__item .movie-card--hero h3 {
   min-height: 2.6em;
   max-height: 2.6em;
   overflow: hidden;
@@ -2675,9 +2675,9 @@ h1, h2, h3, p {
 }
 
 .genre-row__skeleton {
-  flex: 0 0 170px;
-  width: 170px;
-  height: 255px;
+  flex: 0 0 168px;
+  width: 168px;
+  height: 252px;
   border-radius: 18px;
   background: var(--surface-bg);
   animation: skeleton-pulse 1.4s ease-in-out infinite;

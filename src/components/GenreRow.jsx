@@ -67,7 +67,7 @@ export default function GenreRow({ genre }) {
             ))
           : movies.map((movie) => (
               <div key={movie.id} className="genre-row__item">
-                <MovieCard movie={movie} variant="row" />
+                <MovieCard movie={movie} variant="hero" />
               </div>
             ))}
       </div>
