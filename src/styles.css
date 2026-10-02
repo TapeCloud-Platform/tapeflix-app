@@ -2632,6 +2632,7 @@ h1, h2, h3, p {
 
 /* Filas de género estilo Netflix en la home */
 .genre-row {
+  position: relative;
   margin-bottom: 32px;
 }
 
@@ -2639,8 +2640,15 @@ h1, h2, h3, p {
   display: flex;
   gap: 16px;
   overflow-x: auto;
-  padding: 6px 4px 14px;
+  padding: 6px 20px 14px;
   scrollbar-width: thin;
+}
+
+.genre-row:hover .top-slider__arrow,
+.genre-row:focus-within .top-slider__arrow {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) scale(1);
 }
 
 .genre-row__item {
@@ -2655,6 +2663,15 @@ h1, h2, h3, p {
   width: 170px;
   height: 255px;
   aspect-ratio: auto;
+}
+
+.genre-row__item .movie-card--row h3 {
+  min-height: 2.6em;
+  max-height: 2.6em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .genre-row__skeleton {
@@ -2850,6 +2867,8 @@ body {
 .app-header__nav-more {
   border-style: dashed;
   border-color: var(--border);
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 /* Búsqueda: input visible en desktop, panel agrupado más grande */
