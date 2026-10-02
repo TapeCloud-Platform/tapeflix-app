@@ -1610,6 +1610,17 @@ h1, h2, h3, p {
   );
 }
 
+/* En modo claro el fondo va bien claro (nada de degradado oscuro) */
+:root[data-theme='light'] .movie-backdrop__scrim {
+  backdrop-filter: blur(48px) saturate(0.9);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg) 78%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 94%, transparent) 60%,
+    var(--bg) 100%
+  );
+}
+
 .movie-backdrop__content {
   position: relative;
   z-index: 1;
@@ -2080,17 +2091,23 @@ h1, h2, h3, p {
 }
 
 .delete-comment-btn {
+  display: inline-grid;
+  place-items: center;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.85rem;
+  color: var(--text-tertiary);
   margin-left: auto;
-  opacity: 0.7;
-  padding: 0;
+  opacity: 0.85;
+  padding: 4px;
+  border-radius: 8px;
+  transition: opacity 0.2s ease, color 0.2s ease;
 }
 
 .delete-comment-btn:hover {
   opacity: 1;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.12);
 }
 
 .comment-item-body {
@@ -2152,31 +2169,41 @@ h1, h2, h3, p {
 }
 
 .delete-review-btn {
+  display: inline-grid;
+  place-items: center;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-  padding: 2px 4px;
+  color: var(--text-tertiary);
+  opacity: 0.85;
+  transition: opacity 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  padding: 4px;
+  border-radius: 8px;
 }
 
 .delete-review-btn:hover {
   opacity: 1;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.12);
 }
 
 .edit-review-btn {
+  display: inline-grid;
+  place-items: center;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-  padding: 2px 4px;
+  color: var(--text-tertiary);
+  opacity: 0.85;
+  transition: opacity 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  padding: 4px;
+  border-radius: 8px;
 }
 
 .edit-review-btn:hover {
   opacity: 1;
+  color: var(--ink);
+  background: var(--surface-bg-strong);
 }
 
 .char-count {
@@ -2441,6 +2468,26 @@ h1, h2, h3, p {
 
 .star-rating--lg .star-rating__star {
   font-size: 1.7rem;
+}
+
+/* Media estrella: fondo gris + relleno ámbar recortado al 50% */
+.star-rating__half {
+  position: relative;
+  display: inline-block;
+  line-height: 1;
+}
+
+.star-rating__half-bg {
+  color: #8a93a6;
+}
+
+.star-rating__half-fg {
+  position: absolute;
+  inset: 0;
+  width: 50%;
+  overflow: hidden;
+  color: #fbbf24;
+  white-space: nowrap;
 }
 
 /* Chip de género flotando sobre el póster de la tarjeta */

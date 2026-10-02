@@ -11,6 +11,7 @@ import {
 } from '../api';
 import StarRating from './StarRating';
 import AlreadyReviewedDialog from './AlreadyReviewedDialog';
+import { TrashIcon } from './icons';
 
 /**
  * Reseñas + comentarios de un ContentItem. Si `contentId` es null (el contenido
@@ -196,7 +197,7 @@ export default function ReviewPanel({ contentId, onRegister, sessionUser, onLogi
                         onClick={() => handleDeleteReview(review.id)}
                         title="Eliminar reseña"
                       >
-                        🗑
+                        <TrashIcon size={15} />
                       </button>
                     )}
                   </div>
@@ -242,7 +243,7 @@ export default function ReviewPanel({ contentId, onRegister, sessionUser, onLogi
                                 onClick={() => handleDeleteComment(review.id, comment.id)}
                                 title="Eliminar comentario"
                               >
-                                🗑
+                                <TrashIcon size={15} />
                               </button>
                             )}
                           </div>

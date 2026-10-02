@@ -16,6 +16,7 @@ import {
 import StarRating from './StarRating';
 import AlreadyReviewedDialog from './AlreadyReviewedDialog';
 import ConfirmDialog from './ConfirmDialog';
+import { PencilIcon, TrashIcon } from './icons';
 import { formatFullDate, formatYear } from '../utils/format';
 import { findProfanity } from '../utils/profanity';
 import {
@@ -385,7 +386,7 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                             onClick={() => handleStartEdit(review)}
                             title="Editar reseña"
                           >
-                            ✏️
+                            <PencilIcon size={15} />
                           </button>
                           <button
                             type="button"
@@ -393,7 +394,7 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                             onClick={() => setPendingDelete({ kind: 'review', id: review.id })}
                             title="Eliminar reseña"
                           >
-                            🗑
+                            <TrashIcon size={15} />
                           </button>
                         </>
                       )}
@@ -538,7 +539,7 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                                   onClick={() => setPendingDelete({ kind: 'comment', reviewId: review.id, id: comment.id })}
                                   title="Eliminar comentario"
                                 >
-                                  🗑
+                                  <TrashIcon size={15} />
                                 </button>
                               )}
                             </div>
