@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Dropdown } from '@heroui/react';
 import { getMyReviewStats } from '../api';
 import ConfirmDialog from './ConfirmDialog';
+import userIconLight from '../assets/user-icon-light.svg';
+import userIconDark from '../assets/user-icon-dark.svg';
 
 /** Menú de cuenta con el mismo lenguaje que el portal (secciones 01/02). */
 export default function SettingsMenu({
@@ -22,7 +24,7 @@ export default function SettingsMenu({
   const [statsError, setStatsError] = useState('');
   const [loadingStats, setLoadingStats] = useState(false);
 
-  const initial = sessionUser?.displayName?.[0]?.toUpperCase() || '?';
+  const guestIcon = theme === 'light' ? userIconLight : userIconDark;
 
   useEffect(() => {
     setStats(null);
@@ -57,7 +59,7 @@ export default function SettingsMenu({
           {sessionUser?.avatarDataUri ? (
             <img className="account-menu__trigger-avatar" src={sessionUser.avatarDataUri} alt="" />
           ) : (
-            <span className="account-trigger__fallback">{initial}</span>
+            <img className="account-menu__trigger-avatar account-menu__trigger-guest" src={guestIcon} alt="" />
           )}
         </Dropdown.Trigger>
 
@@ -73,7 +75,11 @@ export default function SettingsMenu({
                 alt=""
               />
             ) : (
-              <span className="user-menu__avatar user-menu__avatar--large">{initial}</span>
+              <img
+                className="user-menu__avatar user-menu__avatar--large"
+                src={guestIcon}
+                alt=""
+              />
             )}
             <div>
               <p className="user-menu__name">{sessionUser?.displayName || 'Invitado'}</p>

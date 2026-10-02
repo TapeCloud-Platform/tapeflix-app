@@ -138,12 +138,12 @@ export default function RegisterPage({ onSuccess, onGoToLogin }) {
 
         <TextField className="auth-field" value={password} onChange={setPassword} isRequired>
           <Label>Contraseña</Label>
-          <Input type="password" placeholder="Mínimo 6 caracteres" minLength={6} />
+          <Input type="password" placeholder="Mínimo 8 caracteres" minLength={8} />
         </TextField>
 
         <TextField className="auth-field" value={confirmPassword} onChange={setConfirmPassword} isRequired>
           <Label>Confirmar contraseña</Label>
-          <Input type="password" placeholder="Repetí la contraseña" minLength={6} />
+          <Input type="password" placeholder="Repetí la contraseña" minLength={8} />
         </TextField>
 
         {error && <p className="error">{error}</p>}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 /**
- * Estrellas de calificaci??n con soporte de medias (incrementos de 0.5).
+ * Estrellas de calificación con soporte de medias (incrementos de 0.5).
  * - Solo lectura: muestra 5 estrellas con relleno fraccional.
  * - Editable (onChange): click en mitad izquierda = x.5, mitad derecha = x entero.
  */
@@ -13,16 +13,16 @@ function starFill(value, index) {
 }
 
 function StarVisual({ fill }) {
-  if (fill >= 1) return <span aria-hidden="true">???</span>;
+  if (fill >= 1) return <span aria-hidden="true">★</span>;
   if (fill >= 0.5) {
     return (
       <span aria-hidden="true" className="star-rating__half">
-        <span className="star-rating__half-bg">???</span>
-        <span className="star-rating__half-fg">???</span>
+        <span className="star-rating__half-bg">★</span>
+        <span className="star-rating__half-fg">★</span>
       </span>
     );
   }
-  return <span aria-hidden="true">???</span>;
+  return <span aria-hidden="true">☆</span>;
 }
 
 export default function StarRating({ value = 0, onChange, size = 'md' }) {
@@ -57,7 +57,7 @@ export default function StarRating({ value = 0, onChange, size = 'md' }) {
     <div
       className={`star-rating star-rating--${size}`}
       role="radiogroup"
-      aria-label="Eleg?? una calificaci??n"
+      aria-label="Elegí una calificación"
       onMouseLeave={() => setHoverValue(null)}
     >
       {[1, 2, 3, 4, 5].map((star) => {

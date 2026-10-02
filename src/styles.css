@@ -599,6 +599,22 @@ a.app-switcher__item:hover {
   color: var(--accent);
 }
 
+/* Marca TapeCloud en azul de marca (no el rojo de acento) */
+.auth-modal-brand .eyebrow {
+  color: #5b8cff;
+}
+
+:root[data-theme='light'] .auth-modal-brand .eyebrow {
+  color: #2563eb;
+}
+
+/* El asterisco de requerido va en la misma línea que el label */
+.login-form .auth-field label {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 4px;
+}
+
 h1, h2, h3, p {
   margin-top: 0;
 }
@@ -1652,6 +1668,25 @@ h1, h2, h3, p {
   color: #fbbf24;
 }
 
+/* En modo claro las pills van claras (no del modo oscuro) */
+:root[data-theme='light'] .movie-genre-chip {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(15, 23, 42, 0.16);
+  color: #3f4657;
+}
+
+:root[data-theme='light'] .stat-pill {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(15, 23, 42, 0.16);
+  color: #3f4657;
+}
+
+:root[data-theme='light'] .stat-pill.rating {
+  background: rgba(251, 191, 36, 0.2);
+  border-color: rgba(180, 83, 9, 0.35);
+  color: #b45309;
+}
+
 .detail-biography h2 {
   margin: 0 0 8px;
   font-size: 1.1rem;
@@ -1694,6 +1729,14 @@ h1, h2, h3, p {
   margin: 8px 0;
   color: var(--text-secondary);
   line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.review-card,
+.comment-card {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .review-author {
@@ -2055,6 +2098,13 @@ h1, h2, h3, p {
   font-size: 0.85rem;
   color: var(--text-secondary);
   line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.comment-item {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .comment-form {
@@ -2945,4 +2995,10 @@ body {
   max-width: 180px;
   height: 52px;
   object-fit: contain;
+}
+
+/* Silueta de invitado / sin foto */
+.account-menu__trigger-guest {
+  object-fit: contain;
+  padding: 6px;
 }
