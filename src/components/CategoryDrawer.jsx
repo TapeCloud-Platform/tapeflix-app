@@ -5,6 +5,15 @@ import { discover } from '../discoverApi';
 const SUGGESTION_LIMIT = 6;
 const SUGGESTION_DEBOUNCE_MS = 300;
 
+// Qué tipo pide cada campo al backend para sugerir ETIQUETAS (nunca contenido
+// mezclado): el género sugiere géneros, artista sugiere artistas, etc.
+const SUGGEST_BACKEND_TYPE = {
+  artist: 'artist',
+  people: 'people',
+  album: 'album',
+  search: 'search',
+};
+
 const SECTION_HINTS = {
   genre: 'Buscá y sumá géneros (vale más de uno).',
   country: 'Buscá y sumá países.',
@@ -55,28 +64,60 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
     if (filter.type === 'people') {
       return { type: 'artist', value: item.title, label: item.title };
     }
+    // En música, el campo artista solo acepta artistas (no canciones).
+    if (filter.type === 'artist') {
+      return { type: 'artist', value: item.title, label: item.title };
+    }
     return { type: filter.type, value: item.title, label: item.title };
+  }
+
+  // Solo estos campos piden sugerencias al backend; género/país son
+  // etiquetas locales y nunca muestran contenido.
+  function suggestTypeFor(filter) {
+    if (sourceApp === 'tapeflix' && filter.type === 'artist') {
+      return 'people';
+    }
+    return SUGGEST_BACKEND_TYPE[filter.type] ?? null;
   }
 
   function requestSuggestions(filter, text) {
     clearTimeout(timers.current[filter.type]);
     const query = (text || '').trim();
-    if (query.length < 2) {
+    const suggestType = suggestTypeFor(filter);
+    if (query.length < 2 || suggestType === null) {
       setSuggestions((current) => ({ ...current, [filter.type]: null }));
       return;
     }
     setSuggestions((current) => ({ ...current, [filter.type]: { loading: true, items: [] } }));
     timers.current[filter.type] = setTimeout(() => {
-      discover(sourceApp, { type: filter.type, value: query, limit: SUGGESTION_LIMIT })
-        .then((data) => setSuggestions((current) => ({
-          ...current,
-          [filter.type]: { loading: false, items: (data || []).slice(0, SUGGESTION_LIMIT) },
-        })))
-        .catch(() => setSuggestions((current) => ({
-          ...current,
-          [filter.type]: { loading: false, items: [] },
-        })));
+      discover(sourceApp, { type: suggestType, value: query, limit: SUGGESTION_LIMIT })
+        .then((data) => {
+          setSuggestions((current) => ({
+            ...current,
+            [filter.type]: { loading: false, items: filterItems(filter, data || []).slice(0, SUGGESTION_LIMIT) },
+          }));
+        })
+        .catch(() => {
+          setSuggestions((current) => ({
+            ...current,
+            [filter.type]: { loading: false, items: [] },
+          }));
+        });
     }, SUGGESTION_DEBOUNCE_MS);
+  }
+
+  // Filtra el contenido mezclado: cada campo solo muestra su tipo de etiqueta.
+  function filterItems(filter, items) {
+    if (sourceApp === 'tapebeat' && filter.type === 'artist') {
+      return items.filter((item) => item.kind === 'artist');
+    }
+    if (sourceApp === 'tapebeat' && filter.type === 'album') {
+      return items.filter((item) => item.kind === 'album' || item.kind === 'single');
+    }
+    if (filter.type === 'people') {
+      return items.filter((item) => item.kind === 'person');
+    }
+    return items;
   }
 
   /** Etiquetas locales (género/país): "sci" sugiere "Sci-Fi", etc. */
@@ -188,7 +229,7 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
                           onChange={(event) => {
                             const value = event.target.value;
                             setQueries((current) => ({ ...current, [filter.type]: value }));
-                            if (filter.freeText) {
+                            if (suggestTypeFor(filter) !== null) {
                               requestSuggestions(filter, value);
                             }
                           }}
