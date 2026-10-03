@@ -120,15 +120,51 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
     return items;
   }
 
-  /** Etiquetas locales (género/país): "sci" sugiere "Sci-Fi", etc. */
+  /** Etiquetas locales (género/país): "sci" sugiere "Sci-Fi", "grunge" ya viene del backend. */
   function localMatches(filter) {
-    const query = (queries[filter.type] || '').trim().toLowerCase();
-    if (!query || filter.options.length === 0) {
+    const query = normalizeText(queries[filter.type] || '');
+    if (!query || !filter.options || filter.options.length === 0) {
       return [];
     }
     return filter.options
-      .filter((option) => option.label.toLowerCase().includes(query))
+      .filter((option) => normalizeText(option.label).includes(query)
+        || normalizeText(option.value).includes(query))
       .slice(0, SUGGESTION_LIMIT);
+  }
+
+  function normalizeText(text) {
+    return (text || '').trim().toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  /** Texto libre de la sección que aún no es etiqueta: se puede sumar igual. */
+  function customQuery(filter, matches, suggestion) {
+    const raw = (queries[filter.type] || '').trim();
+    if (raw.length < 2) {
+      return null;
+    }
+    const norm = normalizeText(raw);
+    const alreadyListed = matches.some((option) => normalizeText(option.label) === norm
+      || normalizeText(option.value) === norm);
+    if (alreadyListed) {
+      return null;
+    }
+    const alreadySuggested = (suggestion?.items || []).some((item) => normalizeText(item.title) === norm);
+    if (alreadySuggested) {
+      return null;
+    }
+    return raw;
+  }
+
+  function addCustomTag(filter, raw) {
+    const value = (raw || '').trim();
+    if (!value) {
+      return;
+    }
+    addTag({ type: filter.type === 'people' ? 'artist' : filter.type, value, label: value });
+    setQueries((current) => ({ ...current, [filter.type]: '' }));
+    setSuggestions((current) => ({ ...current, [filter.type]: null }));
   }
 
   return (
@@ -199,6 +235,7 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
                 .map((filter) => {
                   const suggestion = suggestions[filter.type];
                   const matches = localMatches(filter);
+                  const custom = customQuery(filter, matches, suggestion);
                   return (
                     <section key={filter.type} className="drawer__section">
                       <div className="drawer__section-head">
@@ -212,12 +249,7 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
                         className="drawer__form"
                         onSubmit={(event) => {
                           event.preventDefault();
-                          if (filter.freeText) {
-                            const raw = (queries[filter.type] || '').trim();
-                            if (raw) {
-                              addTag({ type: filter.type === 'people' ? 'artist' : filter.type, value: raw, label: raw });
-                            }
-                          }
+                          addCustomTag(filter, queries[filter.type]);
                         }}
                       >
                         <input
@@ -285,8 +317,23 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
                         </ul>
                       )}
 
+                      {custom && (
+                        <ul className="drawer__suggestions">
+                          <li>
+                            <button type="button" onClick={() => addCustomTag(filter, custom)}>
+                              <span>
+                                <strong>Usar &ldquo;{custom}&rdquo; como etiqueta</strong>
+                                <small>Vale cualquier género, país, artista o título</small>
+                              </span>
+                              <span className="header-search__kind">Sumar</span>
+                            </button>
+                          </li>
+                        </ul>
+                      )}
+
                       {suggestion && !suggestion.loading && suggestion.items.length === 0
                         && matches.length === 0
+                        && !custom
                         && (queries[filter.type] || '').trim().length >= 2 && (
                         <p className="drawer__empty">Sin coincidencias.</p>
                       )}
