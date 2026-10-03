@@ -113,7 +113,9 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
       try {
         setLoading(true);
         setError('');
-        const data = await discover(SOURCE_APP, { ...active, limit: RESULT_LIMIT });
+        const data = active.type === 'combined'
+          ? await discover(SOURCE_APP, { filters: combinedParams(active.value), limit: RESULT_LIMIT })
+          : await discover(SOURCE_APP, { ...active, limit: RESULT_LIMIT });
         if (!cancelled) {
           setItems(data || []);
         }
@@ -135,6 +137,34 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
     };
   }, [active]);
 
+  // Etiquetas del drawer a query params: género multi (coma), país multi,
+  // artista multi, álbum y búsqueda simples.
+  function combinedParams(tags) {
+    const pick = (type) => tags.filter((t) => t.type === type).map((t) => t.value);
+    const params = {};
+    const genres = pick('genre');
+    if (genres.length > 0) {
+      params.genre = genres.join(',');
+    }
+    const countries = pick('country');
+    if (countries.length > 0) {
+      params.country = countries.join('|');
+    }
+    const artists = [...pick('artist'), ...pick('people')];
+    if (artists.length > 0) {
+      params.artist = artists.join(',');
+    }
+    const albums = pick('album');
+    if (albums.length > 0) {
+      params.album = albums[0];
+    }
+    const searches = pick('search');
+    if (searches.length > 0) {
+      params.search = searches[0];
+    }
+    return params;
+  }
+
   // Filtrar desde el detalle debe devolver al catálogo para ver los resultados.
   function applyFilter(filter) {
     setActive(filter);
@@ -152,6 +182,7 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
 
   const activeFilter = filters.find((filter) => filter.type === active.type);
   const portalUrl = `${PORTAL_URL}?sso_theme=${theme}`;
+  const combinedLabel = active.type === 'combined' ? active.label : null;
 
   return (
     <div className="app-shell">
@@ -196,6 +227,7 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
               activeFilter={activeFilter}
               active={active}
               filters={filters}
+              activeLabel={combinedLabel}
               onClearFilters={() => applyFilter({ type: 'top', value: '' })}
             />
           }

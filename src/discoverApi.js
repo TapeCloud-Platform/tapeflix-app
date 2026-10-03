@@ -8,10 +8,19 @@ export async function getFilters(sourceApp) {
   return response.json();
 }
 
-export async function discover(sourceApp, { type = 'top', value = '', limit = 30 } = {}) {
-  const params = new URLSearchParams({ type, limit: String(limit) });
-  if (value) {
-    params.set('value', value);
+export async function discover(sourceApp, { type = 'top', value = '', limit = 30, filters } = {}) {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (filters) {
+    for (const [key, val] of Object.entries(filters)) {
+      if (val) {
+        params.set(key, val);
+      }
+    }
+  } else {
+    params.set('type', type);
+    if (value) {
+      params.set('value', value);
+    }
   }
 
   const response = await fetch(`${API_URL}/api/discover/${sourceApp}?${params}`, { credentials: 'include' });

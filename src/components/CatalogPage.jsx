@@ -15,10 +15,12 @@ export default function CatalogPage({
   activeFilter,
   active,
   filters,
+  activeLabel,
   onClearFilters,
 }) {
   const isFiltered = active.type !== 'top';
-  const activeLabel = activeFilter?.options?.find((option) => option.value === active.value)?.label
+  const activeLabelText = activeLabel
+    ?? activeFilter?.options?.find((option) => option.value === active.value)?.label
     ?? active.value;
 
   const movies = items.map((item) => ({
@@ -37,7 +39,7 @@ export default function CatalogPage({
     <main className="app-main">
       <section className="section-block">
         <div className="section-header">
-          <h2>{activeFilter?.label ?? 'Contenido'}</h2>
+          <h2>{active.type === 'combined' ? 'Resultados' : (activeFilter?.label ?? 'Contenido')}</h2>
           {!loading && <span className="count-badge">{movies.length} resultados</span>}
 
           {isFiltered && (
@@ -50,7 +52,7 @@ export default function CatalogPage({
               onClick={onClearFilters}
               onKeyDown={(event) => event.key === 'Enter' && onClearFilters()}
             >
-              {activeLabel}
+              {activeLabelText}
               <span aria-hidden="true">✕</span>
             </Chip>
           )}

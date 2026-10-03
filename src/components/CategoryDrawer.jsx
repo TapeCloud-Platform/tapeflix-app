@@ -6,48 +6,56 @@ const SUGGESTION_LIMIT = 6;
 const SUGGESTION_DEBOUNCE_MS = 300;
 
 const SECTION_HINTS = {
-  top: 'Lo más popular ahora.',
-  genre: 'Elegí uno o varios y dale a Buscar.',
-  country: 'Filtrá por país de origen.',
-  artist: 'Escribí y elegí de las sugerencias.',
-  people: 'Buscá actores y directores por nombre.',
-  album: 'Buscá un álbum por título y elegilo.',
+  genre: 'Buscá y sumá géneros (vale más de uno).',
+  country: 'Buscá y sumá países.',
+  artist: 'Buscá artistas y sumalos como etiqueta.',
+  people: 'Buscá actores o directores y sumalos.',
+  album: 'Buscá un álbum y sumalo.',
   search: 'Búsqueda libre por título.',
 };
 
-/** Drawer de exploración: sugerencias en vivo + multiselección de géneros. */
+/** Drawer de exploración: arma etiquetas combinables (género + país + artista...). */
 export default function CategoryDrawer({ open, filters, active, onApply, onClose, sourceApp }) {
   const [queries, setQueries] = useState({});
-  const [selectedGenres, setSelectedGenres] = useState([]);
   const [suggestions, setSuggestions] = useState({});
+  const [tags, setTags] = useState([]);
   const timers = useRef({});
 
   useEffect(() => () => Object.values(timers.current).forEach(clearTimeout), []);
 
-  function apply(type, value) {
-    onApply({ type, value });
+  function applyFilter(filter) {
+    onApply(filter);
     onClose();
   }
 
-  function toggleGenre(value) {
-    setSelectedGenres((current) =>
-      current.includes(value) ? current.filter((v) => v !== value) : [...current, value]
-    );
+  function addTag(tag) {
+    setTags((current) => {
+      if (current.some((t) => t.type === tag.type && t.value === tag.value)) {
+        return current;
+      }
+      return [...current, tag];
+    });
   }
 
-  function applyGenres() {
-    if (selectedGenres.length === 0) {
+  function removeTag(index) {
+    setTags((current) => current.filter((_, i) => i !== index));
+  }
+
+  function applyCombined() {
+    if (tags.length === 0) {
       return;
     }
-    apply('genre', selectedGenres.join(','));
+    const label = tags.map((t) => t.label).join(' + ');
+    onApply({ type: 'combined', value: tags, label });
+    onClose();
   }
 
-  function suggestionTarget(filter, item) {
-    // Las personas se resuelven a sus películas.
+  function suggestionTag(filter, item) {
+    // Las personas se combinan como artista (sus películas).
     if (filter.type === 'people') {
-      return { type: 'artist', value: item.title };
+      return { type: 'artist', value: item.title, label: item.title };
     }
-    return { type: filter.type, value: item.title };
+    return { type: filter.type, value: item.title, label: item.title };
   }
 
   function requestSuggestions(filter, text) {
@@ -71,73 +79,63 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
     }, SUGGESTION_DEBOUNCE_MS);
   }
 
-  function submitQuery(event, filter) {
-    event.preventDefault();
-    const raw = (queries[filter.type] || '').trim();
-    if (filter.type === 'genre' && selectedGenres.length > 0 && !raw) {
-      applyGenres();
-      return;
-    }
-    if (!raw) {
-      return;
-    }
-
-    const match = filter.options.find(
-      (option) => option.label.toLowerCase() === raw.toLowerCase()
-    );
-
-    if (match) {
-      apply(filter.type, match.value);
-    } else if (filter.freeText) {
-      apply(filter.type, raw);
-    }
-  }
-
-  function visibleOptions(filter) {
+  /** Etiquetas locales (género/país): "sci" sugiere "Sci-Fi", etc. */
+  function localMatches(filter) {
     const query = (queries[filter.type] || '').trim().toLowerCase();
-    // Género: los chips se filtran en vivo por lo escrito ("sci" -> "Sci-Fi").
-    if (filter.type === 'genre') {
-      if (!query) {
-        return filter.options;
-      }
-      return filter.options.filter((option) => option.label.toLowerCase().includes(query));
-    }
-    // Texto libre: las coincidencias vienen del backend, no de chips.
-    if (filter.freeText) {
+    if (!query || filter.options.length === 0) {
       return [];
     }
-    if (!query) {
-      return filter.options;
-    }
-    return filter.options.filter((option) => option.label.toLowerCase().includes(query));
+    return filter.options
+      .filter((option) => option.label.toLowerCase().includes(query))
+      .slice(0, SUGGESTION_LIMIT);
   }
-
-  const activeFilter = filters.find((filter) => filter.type === active.type);
-  const activeOption = activeFilter?.options.find((option) => option.value === active.value);
-  const activeSummary =
-    active.type === 'top'
-      ? 'Inicio'
-      : `${activeFilter?.label ?? active.type}${activeOption ? `: ${activeOption.label}` : active.value ? `: ${active.value}` : ''}`;
-
-  // "Inicio" primero, después el resto en el orden del backend.
-  const ordered = [...filters].sort((a, b) => (a.type === 'top' ? -1 : b.type === 'top' ? 1 : 0));
 
   return (
     <Drawer.Root isOpen={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <Drawer.Backdrop className="drawer-backdrop">
         <Drawer.Content placement="right">
-          <Drawer.Dialog className="drawer" aria-label="Explorar categorías">
+          <Drawer.Dialog className="drawer" aria-label="Explorar por etiquetas">
             <div className="drawer__head">
               <div>
                 <h2>Explorar</h2>
-                <p className="drawer__active">Viendo: <strong>{activeSummary}</strong></p>
+                {tags.length > 0 ? (
+                  <div className="drawer__tags">
+                    {tags.map((tag, index) => (
+                      <Chip
+                        key={`${tag.type}:${tag.value}`}
+                        color="accent"
+                        variant="primary"
+                        className="drawer__tag"
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Quitar ${tag.label}`}
+                        onClick={() => removeTag(index)}
+                        onKeyDown={(event) => event.key === 'Enter' && removeTag(index)}
+                      >
+                        {tag.label}
+                        <span aria-hidden="true">✕</span>
+                      </Chip>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="drawer__hint">Sumá etiquetas y dale a Buscar.</p>
+                )}
               </div>
               <div className="drawer__head-actions">
-                {active.type !== 'top' && (
-                  <Button variant="ghost" className="drawer__clear" onClick={() => apply('top', '')}>
-                    Limpiar filtros
+                {tags.length > 0 && (
+                  <Button variant="ghost" className="drawer__clear" onClick={() => setTags([])}>
+                    Limpiar
                   </Button>
                 )}
+                <Button
+                  type="button"
+                  className="submit-review-btn"
+                  size="sm"
+                  disabled={tags.length === 0}
+                  onClick={applyCombined}
+                >
+                  Buscar{tags.length > 0 ? ` (${tags.length})` : ''}
+                </Button>
                 <Button isIconOnly variant="ghost" className="icon-button" onClick={onClose} aria-label="Cerrar">
                   ✕
                 </Button>
@@ -145,38 +143,42 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
             </div>
 
             <div className="drawer__body">
-              {ordered.map((filter) => {
-                const options = visibleOptions(filter);
-                const suggestion = suggestions[filter.type];
-                const showChips = filter.type === 'genre' || (!filter.freeText && filter.options.length > 0);
+              <section className="drawer__section">
+                <button
+                  type="button"
+                  className={`drawer__item ${active.type === 'top' ? 'is-active' : ''}`}
+                  onClick={() => applyFilter({ type: 'top', value: '' })}
+                >
+                  Ver inicio
+                </button>
+              </section>
 
-                return (
-                  <section key={filter.type} className="drawer__section">
-                    <div className="drawer__section-head">
-                      <h3>{filter.label}</h3>
-                      {filter.options.length > 0 && (
-                        <span className="drawer__count">{filter.options.length}</span>
+              {filters
+                .filter((filter) => filter.type !== 'top')
+                .map((filter) => {
+                  const suggestion = suggestions[filter.type];
+                  const matches = localMatches(filter);
+                  return (
+                    <section key={filter.type} className="drawer__section">
+                      <div className="drawer__section-head">
+                        <h3>{filter.label}</h3>
+                      </div>
+                      {SECTION_HINTS[filter.type] && (
+                        <p className="drawer__hint">{SECTION_HINTS[filter.type]}</p>
                       )}
-                      {filter.type === 'genre' && selectedGenres.length > 0 && (
-                        <span className="drawer__count is-selected">{selectedGenres.length} elegidos</span>
-                      )}
-                    </div>
-                    {SECTION_HINTS[filter.type] && (
-                      <p className="drawer__hint">{SECTION_HINTS[filter.type]}</p>
-                    )}
 
-                    {filter.type === 'top' && (
-                      <button
-                        type="button"
-                        className={`drawer__item ${active.type === 'top' ? 'is-active' : ''}`}
-                        onClick={() => apply('top', '')}
+                      <form
+                        className="drawer__form"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          if (filter.freeText) {
+                            const raw = (queries[filter.type] || '').trim();
+                            if (raw) {
+                              addTag({ type: filter.type === 'people' ? 'artist' : filter.type, value: raw, label: raw });
+                            }
+                          }
+                        }}
                       >
-                        Ver inicio
-                      </button>
-                    )}
-
-                    {filter.type !== 'top' && (
-                      <form className="drawer__form" onSubmit={(event) => submitQuery(event, filter)}>
                         <input
                           type="search"
                           name={`buscar-${filter.type}`}
@@ -193,89 +195,63 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
                           aria-label={`Buscar en ${filter.label}`}
                         />
                         <Button type="submit" className="submit-review-btn" size="sm">
-                          {filter.type === 'genre' && selectedGenres.length > 0 ? `Buscar (${selectedGenres.length})` : 'Ir'}
+                          Sumar
                         </Button>
                       </form>
-                    )}
 
-                    {suggestion?.loading && (
-                      <p className="drawer__hint">Buscando coincidencias...</p>
-                    )}
+                      {suggestion?.loading && (
+                        <p className="drawer__hint">Buscando coincidencias...</p>
+                      )}
 
-                    {suggestion && !suggestion.loading && suggestion.items.length > 0 && (
-                      <ul className="drawer__suggestions">
-                        {suggestion.items.map((item) => (
-                          <li key={item.externalId}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const target = suggestionTarget(filter, item);
-                                apply(target.type, target.value);
-                              }}
-                            >
-                              {item.imageUrl ? (
-                                <img src={item.imageUrl} alt="" aria-hidden="true" />
-                              ) : (
-                                <span className="header-search__fallback" aria-hidden="true">
-                                  {(item.title || '?')[0]?.toUpperCase()}
-                                </span>
-                              )}
-                              <span>
-                                <strong>{item.title}</strong>
-                                {item.subtitle && <small>{item.subtitle}</small>}
-                              </span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-
-                    {showChips && options.length > 0 && (
-                      <div className="drawer__chips">
-                        {options.map((option) => {
-                          if (filter.type === 'genre') {
-                            const isSelected = selectedGenres.includes(option.value);
-                            return (
-                              <Chip
-                                key={option.value}
-                                color={isSelected ? 'accent' : 'default'}
-                                variant={isSelected ? 'primary' : 'soft'}
-                                className={`category-pill ${isSelected ? 'is-active' : ''}`}
-                                role="checkbox"
-                                aria-checked={isSelected}
-                                tabIndex={0}
-                                onClick={() => toggleGenre(option.value)}
-                                onKeyDown={(event) => event.key === 'Enter' && toggleGenre(option.value)}
+                      {matches.length > 0 && (
+                        <ul className="drawer__suggestions">
+                          {matches.map((option) => (
+                            <li key={option.value}>
+                              <button
+                                type="button"
+                                onClick={() => addTag({ type: filter.type, value: option.value, label: option.label })}
                               >
-                                {option.label}
-                              </Chip>
-                            );
-                          }
-                          const isActive = active.type === filter.type && active.value === option.value;
-                          return (
-                            <Chip
-                              key={option.value}
-                              color={isActive ? 'accent' : 'default'}
-                              variant={isActive ? 'primary' : 'soft'}
-                              className={`category-pill ${isActive ? 'is-active' : ''}`}
-                              role="button"
-                              tabIndex={0}
-                              onClick={() => apply(filter.type, option.value)}
-                              onKeyDown={(event) => event.key === 'Enter' && apply(filter.type, option.value)}
-                            >
-                              {option.label}
-                            </Chip>
-                          );
-                        })}
-                      </div>
-                    )}
+                                <span>
+                                  <strong>{option.label}</strong>
+                                </span>
+                                <span className="header-search__kind">Etiqueta</span>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
 
-                    {filter.type === 'genre' && options.length === 0 && (
-                      <p className="drawer__empty">Sin coincidencias.</p>
-                    )}
-                  </section>
-                );
-              })}
+                      {suggestion && !suggestion.loading && suggestion.items.length > 0 && (
+                        <ul className="drawer__suggestions">
+                          {suggestion.items.map((item) => (
+                            <li key={item.externalId}>
+                              <button type="button" onClick={() => addTag(suggestionTag(filter, item))}>
+                                {item.imageUrl ? (
+                                  <img src={item.imageUrl} alt="" aria-hidden="true" />
+                                ) : (
+                                  <span className="header-search__fallback" aria-hidden="true">
+                                    {(item.title || '?')[0]?.toUpperCase()}
+                                  </span>
+                                )}
+                                <span>
+                                  <strong>{item.title}</strong>
+                                  {item.subtitle && <small>{item.subtitle}</small>}
+                                </span>
+                                <span className="header-search__kind">Etiqueta</span>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      {suggestion && !suggestion.loading && suggestion.items.length === 0
+                        && matches.length === 0
+                        && (queries[filter.type] || '').trim().length >= 2 && (
+                        <p className="drawer__empty">Sin coincidencias.</p>
+                      )}
+                    </section>
+                  );
+                })}
             </div>
           </Drawer.Dialog>
         </Drawer.Content>

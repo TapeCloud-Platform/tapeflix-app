@@ -3147,6 +3147,19 @@ body {
   color: #fff;
 }
 
+/* Etiquetas elegidas en el head del drawer */
+.drawer__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  max-width: 260px;
+}
+
+.drawer__tag {
+  cursor: pointer;
+}
+
 /* Perfil público de usuario */
 .user-profile__head {
   margin-bottom: 18px;
