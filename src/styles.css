@@ -2375,18 +2375,19 @@ h1, h2, h3, p {
 
 .top-slider__item {
   position: relative;
-  flex: 0 0 168px;
+  flex: 0 0 196px;
   scroll-snap-align: start;
 }
 
 .top-slider__item .movie-card--hero {
-  flex: 0 0 168px;
+  flex: none;
+  width: 100%;
 }
 
 .top-slider__item .movie-card--hero .poster-container {
-  width: 168px;
-  height: 252px;
-  aspect-ratio: auto;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
 }
 
 .top-slider__item .movie-card--hero h3 {
@@ -2652,17 +2653,17 @@ h1, h2, h3, p {
 }
 
 .genre-row__item {
-  flex: 0 0 168px;
+  flex: 0 0 196px;
 }
 
 .genre-row__item .movie-card--hero {
-  width: 168px;
+  width: 100%;
 }
 
 .genre-row__item .movie-card--hero .poster-container {
-  width: 168px;
-  height: 252px;
-  aspect-ratio: auto;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
 }
 
 .genre-row__item .movie-card--hero h3 {
@@ -2675,9 +2676,9 @@ h1, h2, h3, p {
 }
 
 .genre-row__skeleton {
-  flex: 0 0 168px;
-  width: 168px;
-  height: 252px;
+  flex: 0 0 196px;
+  width: 100%;
+  height: 294px;
   border-radius: 18px;
   background: var(--surface-bg);
   animation: skeleton-pulse 1.4s ease-in-out infinite;
