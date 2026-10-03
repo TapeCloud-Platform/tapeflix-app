@@ -3093,6 +3093,60 @@ body {
   color: var(--text-tertiary);
 }
 
+/* Sugerencias en vivo dentro del drawer */
+.drawer__suggestions {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+
+.drawer__suggestions button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 8px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.drawer__suggestions button:hover {
+  background: var(--surface-bg-strong);
+}
+
+.drawer__suggestions img {
+  width: 32px;
+  height: 44px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.drawer__suggestions strong {
+  display: block;
+  font-size: 0.84rem;
+  line-height: 1.25;
+}
+
+.drawer__suggestions small {
+  display: block;
+  color: var(--text-tertiary);
+  font-size: 0.73rem;
+}
+
+.drawer__count.is-selected {
+  background: var(--brand-gradient);
+  border-color: transparent;
+  color: #fff;
+}
+
 /* Perfil público de usuario */
 .user-profile__head {
   margin-bottom: 18px;

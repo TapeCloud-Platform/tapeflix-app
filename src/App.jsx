@@ -182,6 +182,7 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
         active={active}
         onApply={applyFilter}
         onClose={() => setMenuOpen(false)}
+        sourceApp={SOURCE_APP}
       />
 
       <Routes>
