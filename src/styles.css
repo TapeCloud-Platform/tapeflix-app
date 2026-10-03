@@ -109,7 +109,7 @@
   --accent: #dc2626;
 
   --panel-bg: rgba(255, 255, 255, 0.97);
-  --card-bg: rgba(255, 255, 255, 0.92);
+  --card-bg: #ffffff;
   --surface-bg: rgba(20, 21, 41, 0.06);
   --surface-bg-strong: rgba(20, 21, 41, 0.1);
   --input-bg: #ffffff;
@@ -1824,6 +1824,7 @@ h1, h2, h3, p {
   gap: 4px;
   padding-top: 8px;
   border-top: 1px solid var(--border-softer);
+  background: transparent;
 }
 
 .movie-footer small {
