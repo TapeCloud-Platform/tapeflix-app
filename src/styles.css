@@ -2363,6 +2363,19 @@ h1, h2, h3, p {
   border-color: var(--accent);
 }
 
+/* En modo claro el botón va negro con icono blanco */
+:root[data-theme='light'] .top-slider__arrow {
+  background: #14151d;
+  border-color: #14151d;
+  color: #ffffff;
+}
+
+:root[data-theme='light'] .top-slider__arrow:hover {
+  background: #2a2d3a;
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
 .top-slider__track {
   display: flex;
   gap: 20px;
