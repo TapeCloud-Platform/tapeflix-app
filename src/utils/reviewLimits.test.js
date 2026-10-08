@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { editCooldownRemaining, parseCooldownFromMessage, REVIEW_EDIT_COOLDOWN_SECONDS } from './reviewLimits.js';
+import { editCooldownRemaining, parseCooldownFromMessage, REVIEW_EDIT_COOLDOWN_SECONDS, COMMENT_COOLDOWN_SECONDS } from './reviewLimits.js';
 
 describe('reviewLimits', () => {
   it('permite primera edición (null)', () => {
@@ -29,6 +29,11 @@ describe('reviewLimits', () => {
 
   it('parsea segundos de mensaje 429', () => {
     expect(parseCooldownFromMessage('Podés volver a editar en 12 segundos')).toBe(12);
+    expect(parseCooldownFromMessage('Podés volver a comentar en 30 segundos')).toBe(30);
     expect(parseCooldownFromMessage('sin número')).toBeNull();
+  });
+
+  it('cooldown de comentarios es 30 segundos', () => {
+    expect(COMMENT_COOLDOWN_SECONDS).toBe(30);
   });
 });

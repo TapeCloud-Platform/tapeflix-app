@@ -1930,6 +1930,12 @@ h1, h2, h3, p {
   color: var(--text-secondary);
 }
 
+/* Los campos de HeroUI no estiran solos: ancho completo con tope para no deformar */
+.review-form .review-field > * {
+  width: 100%;
+  max-width: 580px;
+}
+
 .review-field input,
 .review-field select,
 .review-field textarea {
@@ -2198,6 +2204,11 @@ h1, h2, h3, p {
 
 .submit-comment-btn:hover {
   opacity: 0.9;
+}
+
+.submit-comment-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .login-notice-small {

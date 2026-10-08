@@ -2,6 +2,7 @@
 export const REVIEW_TITLE_MAX = 150;
 export const REVIEW_BODY_MAX = 750;
 export const REVIEW_EDIT_COOLDOWN_SECONDS = 30;
+export const COMMENT_COOLDOWN_SECONDS = 30;
 
 /**
  * Segundos restantes para volver a editar según lastEditedAt (0 = ya se puede).

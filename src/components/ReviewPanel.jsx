@@ -12,6 +12,7 @@ import {
 import StarRating from './StarRating';
 import AlreadyReviewedDialog from './AlreadyReviewedDialog';
 import { TrashIcon, EyeIcon, EyeOffIcon, HeartIcon, MessageIcon } from './icons';
+import { COMMENT_COOLDOWN_SECONDS, parseCooldownFromMessage } from '../utils/reviewLimits';
 
 /**
  * Reseñas + comentarios de un ContentItem. Si `contentId` es null (el contenido
@@ -23,6 +24,7 @@ export default function ReviewPanel({ contentId, onRegister, sessionUser, onLogi
   const [commentsByReview, setCommentsByReview] = useState({});
   const [openCommentsFor, setOpenCommentsFor] = useState(null);
   const [commentDraft, setCommentDraft] = useState('');
+  const [commentCooldown, setCommentCooldown] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState({ title: '', body: '', rating: 5, isSpoiler: false });
   const [formError, setFormError] = useState('');
@@ -128,6 +130,17 @@ export default function ReviewPanel({ contentId, onRegister, sessionUser, onLogi
     }
   }
 
+  // Cuenta regresiva del cooldown de comentarios (30s entre comentarios).
+  useEffect(() => {
+    if (commentCooldown <= 0) {
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      setCommentCooldown((value) => Math.max(0, value - 1));
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [commentCooldown]);
+
   async function toggleComments(reviewId) {
     if (openCommentsFor === reviewId) {
       setOpenCommentsFor(null);
@@ -143,7 +156,7 @@ export default function ReviewPanel({ contentId, onRegister, sessionUser, onLogi
 
   async function handleSubmitComment(event, reviewId) {
     event.preventDefault();
-    if (!commentDraft.trim()) {
+    if (!commentDraft.trim() || commentCooldown > 0) {
       return;
     }
 
@@ -154,9 +167,16 @@ export default function ReviewPanel({ contentId, onRegister, sessionUser, onLogi
         [reviewId]: [...(current[reviewId] || []), created],
       }));
       setCommentDraft('');
+      setCommentCooldown(COMMENT_COOLDOWN_SECONDS);
       await reload(contentId);
-    } catch {
-      // Se ignora para no bloquear la lectura de la reseña.
+    } catch (err) {
+      if (err.status === 429) {
+        const wait = parseCooldownFromMessage(err.message);
+        if (wait !== null) {
+          setCommentCooldown(Math.min(wait, COMMENT_COOLDOWN_SECONDS));
+        }
+      }
+      // Otros errores se ignoran para no bloquear la lectura de la reseña.
     }
   }
 
@@ -260,9 +280,14 @@ export default function ReviewPanel({ contentId, onRegister, sessionUser, onLogi
                           value={commentDraft}
                           onChange={(event) => setCommentDraft(event.target.value)}
                         />
-                        <button type="submit" className="submit-comment-btn">
+                        <button type="submit" className="submit-comment-btn" disabled={commentCooldown > 0}>
                           Enviar
                         </button>
+                        {commentCooldown > 0 && (
+                          <p className="error-text">
+                            Podés volver a comentar en {commentCooldown} segundo{commentCooldown === 1 ? '' : 's'}.
+                          </p>
+                        )}
                       </form>
                     ) : (
                       <p className="login-notice-small">Iniciá sesión para comentar.</p>
@@ -290,7 +315,7 @@ export default function ReviewPanel({ contentId, onRegister, sessionUser, onLogi
             {formSuccess && <p className="success-text">{formSuccess}</p>}
 
             {!formOpen ? (
-              <Button variant="primary" fullWidth onClick={handleAddReviewClick}>
+              <Button variant="primary" onClick={handleAddReviewClick}>
                 + Agregar reseña
               </Button>
             ) : (

@@ -24,6 +24,7 @@ import {
   REVIEW_TITLE_MAX,
   REVIEW_BODY_MAX,
   REVIEW_EDIT_COOLDOWN_SECONDS,
+  COMMENT_COOLDOWN_SECONDS,
   editCooldownRemaining,
   parseCooldownFromMessage,
 } from '../utils/reviewLimits';
@@ -42,6 +43,7 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
   const [openCommentsFor, setOpenCommentsFor] = useState(null);
   const [commentDraft, setCommentDraft] = useState('');
   const [commentError, setCommentError] = useState('');
+  const [commentCooldown, setCommentCooldown] = useState(0);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState({ title: '', body: '', rating: 5, isSpoiler: false });
@@ -242,9 +244,20 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
     }
   }
 
+  // Cuenta regresiva del cooldown de comentarios (30s entre comentarios).
+  useEffect(() => {
+    if (commentCooldown <= 0) {
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      setCommentCooldown((value) => Math.max(0, value - 1));
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [commentCooldown]);
+
   async function handleSubmitComment(event, reviewId) {
     event.preventDefault();
-    if (!commentDraft.trim()) {
+    if (!commentDraft.trim() || commentCooldown > 0) {
       return;
     }
     setCommentError('');
@@ -260,8 +273,15 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
         [reviewId]: [...(current[reviewId] || []), created],
       }));
       setCommentDraft('');
+      setCommentCooldown(COMMENT_COOLDOWN_SECONDS);
       await loadReviews(contentId);
     } catch (err) {
+      if (err.status === 429) {
+        const wait = parseCooldownFromMessage(err.message);
+        if (wait !== null) {
+          setCommentCooldown(Math.min(wait, COMMENT_COOLDOWN_SECONDS));
+        }
+      }
       setCommentError(err.message || 'No se pudo publicar el comentario.');
     }
   }
@@ -604,10 +624,15 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
                             value={commentDraft}
                             onChange={(event) => setCommentDraft(event.target.value)}
                           />
-                          <button type="submit" className="submit-comment-btn">
+                          <button type="submit" className="submit-comment-btn" disabled={commentCooldown > 0}>
                             Enviar
                           </button>
                           {commentError && <p className="error-text">{commentError}</p>}
+                          {commentCooldown > 0 && (
+                            <p className="error-text">
+                              Podés volver a comentar en {commentCooldown} segundo{commentCooldown === 1 ? '' : 's'}.
+                            </p>
+                          )}
                         </form>
                       ) : (
                         <p className="login-notice-small">Iniciá sesión para comentar.</p>

@@ -225,7 +225,9 @@ export async function createComment(reviewId, _token, commentData) {
   const body = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(body.message || 'No se pudo publicar el comentario.');
+    const error = new Error(body.message || 'No se pudo publicar el comentario.');
+    error.status = response.status;
+    throw error;
   }
 
   return body;
