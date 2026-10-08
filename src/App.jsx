@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -27,6 +27,17 @@ const TAPEFLIX_URL = import.meta.env.VITE_TAPEFLIX_URL || 'http://localhost:5174
 const RESULT_LIMIT = 40;
 const SUGGESTION_PER_GROUP = 4;
 const SUGGESTION_DEBOUNCE_MS = 250;
+const NAV_GENRE_COUNT = 8;
+
+/** Mezcla una lista (Fisher-Yates) sin mutar la original. */
+function shuffled(list) {
+  const arr = [...list];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 function consumeSsoParams() {
   const params = new URLSearchParams(window.location.search);
@@ -184,6 +195,13 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
   const portalUrl = `${PORTAL_URL}?sso_theme=${theme}`;
   const combinedLabel = active.type === 'combined' ? active.label : null;
 
+  // Géneros del header en orden aleatorio: el nav y las secciones del inicio
+  // comparten la misma lista para que las categorías carguen en base a eso.
+  const navGenres = useMemo(() => {
+    const options = filters.find((filter) => filter.type === 'genre')?.options ?? [];
+    return shuffled(options).slice(0, NAV_GENRE_COUNT);
+  }, [filters]);
+
   return (
     <div className="app-shell">
       <AppHeader
@@ -203,6 +221,7 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
         theme={theme}
         onThemeChange={onThemeChange}
         filters={filters}
+        navGenres={navGenres}
         active={active}
         onApplyFilter={applyFilter}
       />
@@ -227,6 +246,7 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
               activeFilter={activeFilter}
               active={active}
               filters={filters}
+              navGenres={navGenres}
               activeLabel={combinedLabel}
               onClearFilters={() => applyFilter({ type: 'top', value: '' })}
             />

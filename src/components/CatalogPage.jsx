@@ -16,6 +16,7 @@ export default function CatalogPage({
   activeFilter,
   active,
   filters,
+  navGenres = [],
   activeLabel,
   onClearFilters,
 }) {
@@ -40,8 +41,7 @@ export default function CatalogPage({
   const hero = movies.slice(0, 10);
   const shelf = movies.slice(10, 26);
 
-  const genreFilter = filters.find((filter) => filter.type === 'genre');
-  const homeGenres = genreFilter?.options?.slice(0, HOME_GENRE_ROWS) ?? [];
+  const homeGenres = navGenres.slice(0, HOME_GENRE_ROWS);
 
   return (
     <main className="app-main">
