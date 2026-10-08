@@ -728,6 +728,11 @@ h1, h2, h3, p {
   box-shadow: 0 14px 35px rgba(0, 0, 0, 0.35);
 }
 
+.movie-card--clickable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .poster-container {
   position: relative;
   width: 100%;

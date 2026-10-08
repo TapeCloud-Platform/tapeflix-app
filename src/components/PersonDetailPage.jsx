@@ -207,7 +207,20 @@ export default function PersonDetailPage({ sessionUser, onLoginClick }) {
 
   function renderMovieCard(movie) {
     return (
-      <article key={movie.externalId} className="movie-card">
+      <article
+        key={movie.externalId}
+        className="movie-card movie-card--clickable"
+        onClick={() => openMovie(movie)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openMovie(movie);
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        title={movie.title}
+      >
         <div className="poster-container">
           {movie.imageUrl ? (
             <img
