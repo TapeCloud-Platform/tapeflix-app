@@ -1,13 +1,16 @@
 /**
  * Pre-chequeo local de lenguaje no permitido (ES/EN/PT/FR).
  * Las palabras NO están hardcodeadas: viven en `src/data/profanity/*.txt`
- * y se importan como texto. El backend valida de forma autoritativa y puede
- * rechazar con 400 aunque este chequeo no detecte nada.
+ * y se importan como texto. `allow.txt` (español común: "con", "ano" de
+ * "año", etc.) nunca bloquea aunque choque con otro idioma.
+ * El backend valida de forma autoritativa y puede rechazar con 400
+ * aunque este chequeo no detecte nada.
  */
 import esRaw from '../data/profanity/es.txt?raw';
 import enRaw from '../data/profanity/en.txt?raw';
 import ptRaw from '../data/profanity/pt.txt?raw';
 import frRaw from '../data/profanity/fr.txt?raw';
+import allowRaw from '../data/profanity/allow.txt?raw';
 
 function stripDiacritics(value) {
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -51,6 +54,13 @@ const PATTERNS = loadWords().map(
   (word) => new RegExp(`(?<![\\p{L}\\p{N}_])${escapeRegExp(word)}(?![\\p{L}\\p{N}_])`, 'iu'),
 );
 
+const ALLOW = new Set(
+  String(allowRaw)
+    .split('\n')
+    .map((line) => normalizeText(line.trim()))
+    .filter((word) => word && !word.startsWith('#')),
+);
+
 /** Devuelve el fragmento bloqueado o null si el texto está limpio. */
 export function findProfanity(text) {
   if (!text) {
@@ -59,7 +69,8 @@ export function findProfanity(text) {
   const normalized = normalizeText(text);
   for (const pattern of PATTERNS) {
     const match = normalized.match(pattern);
-    if (match) {
+    // La lista de permitidas gana (español común vs. insultos de otro idioma).
+    if (match && !ALLOW.has(match[0].toLowerCase())) {
       return match[0];
     }
   }
@@ -88,7 +99,7 @@ export function isUsernameBlocked(username) {
   }
   for (const pattern of PATTERNS) {
     for (const token of tokens) {
-      if (!token) {
+      if (!token || ALLOW.has(token)) {
         continue;
       }
       pattern.lastIndex = 0;

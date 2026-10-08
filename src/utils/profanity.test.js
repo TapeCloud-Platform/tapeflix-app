@@ -15,4 +15,16 @@ describe('profanity', () => {
     expect(isUsernameBlocked('computadora')).toBe(false);
     expect(isUsernameBlocked('computadora99')).toBe(false);
   });
+
+  it('español común no bloquea aunque choque con otro idioma', () => {
+    // "con" es insulto en francés pero preposición en español; "año" normaliza a "ano"
+    expect(containsProfanity('La mejor película del año, con una fotografía increíble')).toBe(false);
+    expect(containsProfanity('Canta con una pasión única')).toBe(false);
+    expect(isUsernameBlocked('con')).toBe(false);
+  });
+
+  it('insultos reales siguen bloqueando', () => {
+    expect(containsProfanity('esta puta madre')).toBe(true);
+    expect(isUsernameBlocked('puta.madre')).toBe(true);
+  });
 });
