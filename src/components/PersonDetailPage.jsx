@@ -386,22 +386,6 @@ export default function PersonDetailPage({ sessionUser, onLoginClick }) {
                       Cargar más películas
                     </button>
                   )}
-
-                  {(profile?.bio || profile?.tags?.length > 0) && (
-                    <section className="section-block">
-                      <h2 className="subsection-title">Acerca de</h2>
-                      {profile?.tags?.length > 0 && (
-                        <div className="artist-tags">
-                          {profile.tags.map((tag) => (
-                            <span key={tag} className="artist-tag">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      {profile?.bio && <ExpandableText text={profile.bio} className="artist-bio" />}
-                    </section>
-                  )}
                 </>
               )}
 
