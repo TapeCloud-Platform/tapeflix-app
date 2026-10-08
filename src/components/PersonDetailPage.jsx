@@ -25,6 +25,27 @@ function formatDate(iso) {
   }
 }
 
+const COLLAPSE_LIMIT = 280;
+
+/** Texto largo colapsado con botón Leer más / Leer menos. */
+function ExpandableText({ text, className }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!text) {
+    return null;
+  }
+  if (text.length <= COLLAPSE_LIMIT) {
+    return <p className={className}>{text}</p>;
+  }
+  return (
+    <>
+      <p className={className}>{expanded ? text : `${text.slice(0, COLLAPSE_LIMIT).trim()}…`}</p>
+      <button type="button" className="read-more-btn" onClick={() => setExpanded((open) => !open)}>
+        {expanded ? 'Leer menos' : 'Leer más…'}
+      </button>
+    </>
+  );
+}
+
 function getKnownForDepartment(department) {
   const map = {
     Acting: 'Actor/Actriz',
@@ -347,7 +368,7 @@ export default function PersonDetailPage({ sessionUser, onLoginClick }) {
                       <div className="review-list">{topReviews.map((review) => (
                         <div key={review.id} className="review-card">
                           <strong>{review.title}</strong>
-                          <p className="review-body">{review.body}</p>
+                          <ExpandableText text={review.body} className="review-body" />
                           <span className="review-rating">⭐ {review.rating}/5</span>
                           <small className="review-author">Por: {review.authorDisplayName || 'Anónimo'}</small>
                         </div>
@@ -378,7 +399,7 @@ export default function PersonDetailPage({ sessionUser, onLoginClick }) {
                           ))}
                         </div>
                       )}
-                      {profile?.bio && <p className="artist-bio">{profile.bio}</p>}
+                      {profile?.bio && <ExpandableText text={profile.bio} className="artist-bio" />}
                     </section>
                   )}
                 </>
@@ -417,7 +438,7 @@ export default function PersonDetailPage({ sessionUser, onLoginClick }) {
                       <div className="review-list">{allReviews.map((review) => (
                         <div key={review.id} className="review-card">
                           <strong>{review.title}</strong>
-                          <p className="review-body">{review.body}</p>
+                          <ExpandableText text={review.body} className="review-body" />
                           <span className="review-rating">⭐ {review.rating}/5</span>
                           <small className="review-author">Por: {review.authorDisplayName || 'Anónimo'}</small>
                         </div>

@@ -697,6 +697,22 @@ h1, h2, h3, p {
   color: var(--accent);
 }
 
+/* Botón Leer más / Leer menos para bios y reseñas largas */
+.read-more-btn {
+  margin-top: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.read-more-btn:hover {
+  text-decoration: underline;
+}
+
 .category-pill {
   padding: 8px 16px;
   border-radius: 999px;
