@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getUserProfile } from '../discoverApi';
+import { SkeletonUserProfile } from './Skeleton';
 
 /** Perfil público de un usuario de TapeCloud: avatar, nombre y stats de reseñas. */
 export default function UserProfilePage() {
@@ -44,7 +45,7 @@ export default function UserProfilePage() {
   if (loading) {
     return (
       <main className="app-main">
-        <p className="settings-menu__hint">Cargando perfil...</p>
+        <SkeletonUserProfile />
       </main>
     );
   }

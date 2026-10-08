@@ -3,8 +3,7 @@ import MovieCard from './MovieCard';
 import StackedShelf from './StackedShelf';
 import TopSlider from './TopSlider';
 import GenreRow from './GenreRow';
-import { SkeletonCatalogGrid } from './Skeleton';
-import LoadingIcon from './LoadingIcon';
+import { SkeletonCatalogGrid, SkeletonCatalogHome } from './Skeleton';
 
 const HOME_GENRE_ROWS = 6;
 
@@ -61,12 +60,11 @@ export default function CatalogPage({
         {error && <p className="error">{error}</p>}
 
         {loading ? (
-          <div className="catalog-loading">
+          isFiltered ? (
             <SkeletonCatalogGrid count={10} />
-            <div className="catalog-loading-icon-row">
-              <LoadingIcon size={22} />
-            </div>
-          </div>
+          ) : (
+            <SkeletonCatalogHome />
+          )
         ) : isFiltered ? (
           <div className="cards-grid">
             {movies.map((movie) => (

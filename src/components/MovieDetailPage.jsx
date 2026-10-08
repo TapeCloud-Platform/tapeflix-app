@@ -14,6 +14,7 @@ import {
   deleteComment,
 } from '../api';
 import StarRating from './StarRating';
+import { SkeletonMovieDetail } from './Skeleton';
 import AlreadyReviewedDialog from './AlreadyReviewedDialog';
 import ConfirmDialog from './ConfirmDialog';
 import { PencilIcon, TrashIcon, EyeIcon, EyeOffIcon, HeartIcon, MessageIcon, CalendarIcon } from './icons';
@@ -272,9 +273,7 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
   if (loading) {
     return (
       <main className="app-main">
-        <div className="detail-page">
-          <h1>Cargando...</h1>
-        </div>
+        <SkeletonMovieDetail />
       </main>
     );
   }

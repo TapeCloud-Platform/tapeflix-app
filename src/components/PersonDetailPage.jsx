@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { discover, getProfile } from '../discoverApi';
 import { findContentByExternalId, getReviews, registerContent } from '../api';
-import { SkeletonCatalogGrid } from './Skeleton';
+import { SkeletonPersonDetail } from './Skeleton';
 import ReviewPanel from './ReviewPanel';
 
 const RELEASE_TABS = [
@@ -241,7 +241,7 @@ export default function PersonDetailPage({ sessionUser, onLoginClick }) {
       {error && <p className="error">{error}</p>}
 
       {loading ? (
-        <SkeletonCatalogGrid count={6} />
+        <SkeletonPersonDetail />
       ) : (
         <>
           <section className="entity-hero">
