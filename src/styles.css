@@ -3156,6 +3156,33 @@ body {
   max-width: 260px;
 }
 
+/* Head apilado: título + acciones arriba, etiquetas debajo a ancho completo */
+.drawer__head--tags {
+  display: block;
+}
+
+.drawer__head-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.drawer__head-top h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  flex: none;
+}
+
+.drawer__head--tags .drawer__tags {
+  margin-top: 12px;
+  max-width: none;
+}
+
+.drawer__head--tags .drawer__hint {
+  margin: 8px 0 0;
+}
+
 .drawer__tag {
   cursor: pointer;
 }

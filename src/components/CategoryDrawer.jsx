@@ -172,51 +172,51 @@ export default function CategoryDrawer({ open, filters, active, onApply, onClose
       <Drawer.Backdrop className="drawer-backdrop">
         <Drawer.Content placement="right">
           <Drawer.Dialog className="drawer" aria-label="Explorar por etiquetas">
-            <div className="drawer__head">
-              <div>
+            <div className="drawer__head drawer__head--tags">
+              <div className="drawer__head-top">
                 <h2>Explorar</h2>
-                {tags.length > 0 ? (
-                  <div className="drawer__tags">
-                    {tags.map((tag, index) => (
-                      <Chip
-                        key={`${tag.type}:${tag.value}`}
-                        color="accent"
-                        variant="primary"
-                        className="drawer__tag"
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`Quitar ${tag.label}`}
-                        onClick={() => removeTag(index)}
-                        onKeyDown={(event) => event.key === 'Enter' && removeTag(index)}
-                      >
-                        {tag.label}
-                        <span aria-hidden="true">✕</span>
-                      </Chip>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="drawer__hint">Sumá etiquetas y dale a Buscar.</p>
-                )}
-              </div>
-              <div className="drawer__head-actions">
-                {tags.length > 0 && (
-                  <Button variant="ghost" className="drawer__clear" onClick={() => setTags([])}>
-                    Limpiar
+                <div className="drawer__head-actions">
+                  {tags.length > 0 && (
+                    <Button variant="ghost" className="drawer__clear" onClick={() => setTags([])}>
+                      Limpiar
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    className="submit-review-btn"
+                    size="sm"
+                    disabled={tags.length === 0}
+                    onClick={applyCombined}
+                  >
+                    Buscar
                   </Button>
-                )}
-                <Button
-                  type="button"
-                  className="submit-review-btn"
-                  size="sm"
-                  disabled={tags.length === 0}
-                  onClick={applyCombined}
-                >
-                  Buscar{tags.length > 0 ? ` (${tags.length})` : ''}
-                </Button>
-                <Button isIconOnly variant="ghost" className="icon-button" onClick={onClose} aria-label="Cerrar">
-                  ✕
-                </Button>
+                  <Button isIconOnly variant="ghost" className="icon-button" onClick={onClose} aria-label="Cerrar">
+                    ✕
+                  </Button>
+                </div>
               </div>
+              {tags.length > 0 ? (
+                <div className="drawer__tags">
+                  {tags.map((tag, index) => (
+                    <Chip
+                      key={`${tag.type}:${tag.value}`}
+                      color="accent"
+                      variant="primary"
+                      className="drawer__tag"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Quitar ${tag.label}`}
+                      onClick={() => removeTag(index)}
+                      onKeyDown={(event) => event.key === 'Enter' && removeTag(index)}
+                    >
+                      {tag.label}
+                      <span aria-hidden="true">✕</span>
+                    </Chip>
+                  ))}
+                </div>
+              ) : (
+                <p className="drawer__hint">Sumá etiquetas y dale a Buscar.</p>
+              )}
             </div>
 
             <div className="drawer__body">
