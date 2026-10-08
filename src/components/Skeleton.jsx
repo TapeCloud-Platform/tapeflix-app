@@ -181,6 +181,32 @@ function SkeletonTabs({ count = 3 }) {
   );
 }
 
+function SkeletonSidebarActions() {
+  return (
+    <div className="entity-sidebar__actions" aria-hidden="true">
+      <SkeletonBlock className="skeleton--action-row" />
+      <div className="entity-sidebar__share">
+        <SkeletonBlock className="skeleton--action-row" />
+        <SkeletonBlock className="skeleton--action-row" />
+      </div>
+    </div>
+  );
+}
+
+function SkeletonRatingBars({ count = 5 }) {
+  return (
+    <div className="rating-distribution" aria-hidden="true">
+      {Array.from({ length: count }).map((_, index) => (
+        <div key={index} className="rating-distribution__bar-row">
+          <SkeletonBlock className="skeleton--line" style={{ width: 20 }} />
+          <SkeletonBlock className="skeleton--bar" />
+          <SkeletonBlock className="skeleton--line" style={{ width: 24 }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** Ficha de persona: hero + tabs + créditos y sidebar. */
 export function SkeletonPersonDetail() {
   return (
@@ -249,26 +275,51 @@ export function SkeletonPersonDetail() {
   );
 }
 
-/** Perfil público: cabecera con avatar y lista de estadísticas. */
+/** Perfil público: hero estilo persona + tabs, actividad y sidebar. */
 export function SkeletonUserProfile() {
   return (
     <div role="status" aria-label="Cargando perfil">
-      <div className="user-menu__profile user-profile__head" aria-hidden="true">
-        <SkeletonBlock className="skeleton--circle" style={{ width: 48, height: 48 }} />
-        <div style={{ flex: 1 }}>
-          <SkeletonBlock className="skeleton--line" style={{ width: 180, height: 18, marginBottom: 8 }} />
-          <SkeletonBlock className="skeleton--line" style={{ width: 120 }} />
+      <section className="entity-hero" aria-hidden="true">
+        <div className="entity-hero__left">
+          <SkeletonBlock className="skeleton--avatar" />
+          <div style={{ flex: 1 }}>
+            <SkeletonBlock className="skeleton--line" style={{ width: 130, marginBottom: 8 }} />
+            <SkeletonBlock className="skeleton--title" style={{ width: 220, marginBottom: 8 }} />
+            <SkeletonBlock className="skeleton--line" style={{ width: 120 }} />
+          </div>
         </div>
-      </div>
+        <div className="entity-hero__right">
+          <SkeletonHeroStats />
+        </div>
+      </section>
 
-      <ul className="user-menu__list user-profile__stats" aria-hidden="true">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <li key={index}>
-            <SkeletonBlock className="skeleton--line" style={{ width: '40%' }} />
-            <SkeletonBlock className="skeleton--line" style={{ width: '25%' }} />
-          </li>
-        ))}
-      </ul>
+      <SkeletonTabs count={1} />
+
+      <div className="entity-layout" aria-hidden="true">
+        <div className="entity-main">
+          <section className="section-block">
+            <SkeletonBlock className="skeleton--line" style={{ width: 120, marginBottom: 14 }} />
+            <div className="information-panel">
+              <div className="information-grid">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="information-cell">
+                    <SkeletonBlock className="skeleton--line" style={{ width: '45%', marginBottom: 6 }} />
+                    <SkeletonBlock className="skeleton--line" style={{ width: '60%' }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside className="entity-sidebar">
+          <SkeletonSidebarActions />
+          <div className="entity-sidebar__panel">
+            <SkeletonBlock className="skeleton--line" style={{ width: 140, marginBottom: 12 }} />
+            <SkeletonRatingBars count={2} />
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

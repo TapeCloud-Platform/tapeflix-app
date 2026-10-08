@@ -150,7 +150,7 @@ export default function PersonDetailPage({ sessionUser, onLoginClick }) {
   }, [profile]);
 
   const allReviews = useMemo(
-    () => movies.flatMap((movie) => movie.reviews.map((review) => ({ ...review, movie }))),
+    () => movies.flatMap((movie) => (movie.reviews || []).map((review) => ({ ...review, movie }))),
     [movies]
   );
 

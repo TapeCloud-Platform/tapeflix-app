@@ -3709,6 +3709,137 @@ body {
   padding: 7px 6px;
 }
 
+/* ===== Perfil público: hero, actividad y reseña destacada ===== */
+.user-profile__hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.user-profile__hero-text .eyebrow {
+  margin: 0;
+}
+
+.user-profile__hero-text .user-menu__email {
+  margin: 0;
+}
+
+.information-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.information-cell {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-softer);
+}
+
+.information-cell:nth-child(odd) {
+  border-right: 1px solid var(--border-softer);
+}
+
+.information-cell h4 {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  color: var(--text-tertiary);
+}
+
+.information-cell p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.information-cell__empty {
+  color: var(--text-disabled) !important;
+}
+
+@media (max-width: 640px) {
+  .information-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .information-cell:nth-child(odd) {
+    border-right: none;
+  }
+}
+
+.featured-review {
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border-soft);
+  background: var(--card-bg);
+}
+
+.featured-review--clickable {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.featured-review--clickable:hover {
+  border-color: var(--border);
+}
+
+.featured-review__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.95rem;
+}
+
+.featured-review__meta {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+}
+
+.app-badge {
+  flex: none;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.app-badge--tapebeat {
+  background: rgba(45, 212, 191, 0.15);
+  border-color: rgba(45, 212, 191, 0.4);
+  color: #2dd4bf;
+}
+
+.app-badge--tapeflix {
+  background: rgba(248, 113, 113, 0.13);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #f87171;
+}
+
+:root[data-theme='light'] .app-badge--tapebeat {
+  color: #0d9488;
+}
+
+:root[data-theme='light'] .app-badge--tapeflix {
+  color: #dc2626;
+}
+
+.rating-distribution__label {
+  flex: none;
+  min-width: 62px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
 /* ===== Estadística de rating (mismo lenguaje que TapeBeat) ===== */
 .information-panel {
   border-radius: 16px;
