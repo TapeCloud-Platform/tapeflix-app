@@ -1,5 +1,4 @@
 import { AlertDialog, Button } from '@heroui/react';
-import { PencilIcon } from './icons';
 
 /** Popup que avisa que el usuario ya tiene una reseña publicada para este título. */
 export default function AlreadyReviewedDialog({ isOpen, onClose }) {
@@ -13,7 +12,7 @@ export default function AlreadyReviewedDialog({ isOpen, onClose }) {
             </AlertDialog.Header>
             <AlertDialog.Body>
               Cada usuario puede publicar una sola reseña por título. Si querés cambiar tu
-              opinión, usá el botón <PencilIcon size={15} /> de tu reseña en la lista (podés editar una vez cada 30 segundos).
+              opinión, editá tu reseña desde la lista (podés editar una vez cada 30 segundos).
             </AlertDialog.Body>
             <AlertDialog.Footer>
               <Button variant="primary" onClick={onClose}>
