@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Chip } from '@heroui/react';
 import MovieCard from './MovieCard';
 import StackedShelf from './StackedShelf';
@@ -6,6 +7,7 @@ import GenreRow from './GenreRow';
 import { SkeletonCatalogGrid, SkeletonCatalogHome } from './Skeleton';
 
 const HOME_GENRE_ROWS = 6;
+const PAGE_SIZE = 20;
 
 export default function CatalogPage({
   items,
@@ -27,6 +29,13 @@ export default function CatalogPage({
     id: item.externalId,
     releaseDate: item.subtitle,
   }));
+
+  // Resultados filtrados: de a 20 con botón Ver más.
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [items]);
 
   const hero = movies.slice(0, 10);
   const shelf = movies.slice(10, 26);
@@ -66,11 +75,23 @@ export default function CatalogPage({
             <SkeletonCatalogHome />
           )
         ) : isFiltered ? (
-          <div className="cards-grid">
-            {movies.map((movie) => (
-              <MovieCard key={movie.id} movie={movie} />
-            ))}
-          </div>
+          <>
+            <div className="cards-grid">
+              {movies.slice(0, visibleCount).map((movie) => (
+                <MovieCard key={movie.id} movie={movie} />
+              ))}
+            </div>
+
+            {visibleCount < movies.length && (
+              <button
+                type="button"
+                className="load-more-btn"
+                onClick={() => setVisibleCount((value) => value + PAGE_SIZE)}
+              >
+                Ver más ({movies.length - visibleCount} restantes)
+              </button>
+            )}
+          </>
         ) : (
           <>
             <TopSlider title="Populares ahora" movies={hero} />

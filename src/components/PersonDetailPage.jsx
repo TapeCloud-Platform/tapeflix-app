@@ -4,6 +4,7 @@ import { discover, getProfile } from '../discoverApi';
 import { findContentByExternalId, getReviews, registerContent } from '../api';
 import { SkeletonPersonDetail } from './Skeleton';
 import ReviewPanel from './ReviewPanel';
+import { LockIcon } from './icons';
 
 const RELEASE_TABS = [
   { value: 'movie', label: 'Películas' },
@@ -186,6 +187,14 @@ export default function PersonDetailPage({ sessionUser, onLoginClick }) {
     return registered.id;
   }
 
+  function handleRatePersonClick() {
+    if (!sessionUser) {
+      onLoginClick?.();
+      return;
+    }
+    setTab('reviews');
+  }
+
   function copyLink() {
     navigator.clipboard
       ?.writeText(window.location.href)
@@ -290,9 +299,15 @@ export default function PersonDetailPage({ sessionUser, onLoginClick }) {
                 )}
               </div>
 
-              {sessionUser && !(personStats.yourRating != null) && (
-                <button type="button" className="entity-hero__cta" onClick={() => setTab('reviews')}>
-                  Calificar películas de este/a artista
+              {!(sessionUser && personStats.yourRating != null) && (
+                <button type="button" className="entity-hero__cta" onClick={handleRatePersonClick}>
+                  {sessionUser ? (
+                    '★ Calificar películas de este/a artista'
+                  ) : (
+                    <>
+                      <LockIcon size={15} /> Iniciá sesión para calificar
+                    </>
+                  )}
                 </button>
               )}
             </div>
