@@ -295,6 +295,17 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
     ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length
     : 0;
 
+  // Estadística de rating estilo TapeBeat: conteo, promedio, tu nota y distribución 1★-5★.
+  const distribution = [1, 2, 3, 4, 5].map(
+    (star) => reviews.filter((review) => Math.round(review.rating) === star).length
+  );
+  const maxDistribution = Math.max(1, ...distribution);
+  const yourRating = reviews.find((review) => review.ownedByCurrentUser)?.rating ?? null;
+
+  function scrollToReviews() {
+    document.getElementById('movie-reviews')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   const releaseDate = movie.releaseDate || movie.subtitle;
   const genres = (movie.genre || '').split(',').map((g) => g.trim()).filter(Boolean);
 
@@ -359,7 +370,50 @@ export default function MovieDetailPage({ sessionUser, onLoginClick }) {
           </div>
         </div>
 
-        <div className="detail-reviews-section">
+        <section className="section-block">
+          <h2 className="subsection-title">Estadística de rating</h2>
+          <div className="information-panel">
+            {reviews.length > 0 ? (
+              <div className="rating-distribution rating-distribution--wide">
+                <div className="rating-summary">
+                  <strong className="rating-summary__value">
+                    ★ {averageRating.toFixed(1)}/5
+                  </strong>
+                  <StarRating value={averageRating} size="sm" />
+                  <span className="rating-summary__count">
+                    {reviews.length} {reviews.length === 1 ? 'calificación' : 'calificaciones'}
+                    {yourRating != null && ` · Tu nota: ${yourRating}/5`}
+                  </span>
+                  <button
+                    type="button"
+                    className="rating-summary__cta"
+                    onClick={scrollToReviews}
+                  >
+                    Ver reseñas
+                  </button>
+                </div>
+                {distribution.map((count, index) => (
+                  <div key={index} className="rating-distribution__bar-row">
+                    <span>{index + 1}★</span>
+                    <span className="rating-distribution__track">
+                      <span
+                        className="rating-distribution__fill"
+                        style={{ width: `${(count / maxDistribution) * 100}%` }}
+                      />
+                    </span>
+                    <span>{count}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rating-distribution rating-distribution--wide">
+                <p className="no-reviews">Esta película todavía no tiene calificaciones.</p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <div className="detail-reviews-section" id="movie-reviews">
           <h2>Reseñas y comentarios</h2>
 
           <div className="review-panel">

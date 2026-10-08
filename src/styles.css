@@ -3645,6 +3645,12 @@ body {
   border-radius: 8px;
 }
 
+.skeleton--bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+}
+
 .skeleton--shelf-item {
   width: 120px;
   height: 180px;
@@ -3662,6 +3668,81 @@ body {
   align-items: center;
   gap: 10px;
   padding: 7px 6px;
+}
+
+/* ===== Estadística de rating (mismo lenguaje que TapeBeat) ===== */
+.information-panel {
+  border-radius: 16px;
+  border: 1px solid var(--border-soft);
+  background: var(--card-bg);
+  overflow: hidden;
+}
+
+.rating-distribution {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rating-distribution--wide {
+  padding: 20px 20px 16px;
+}
+
+.rating-distribution__bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+}
+
+.rating-distribution__track {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-bg-strong);
+  overflow: hidden;
+}
+
+.rating-distribution__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.rating-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.rating-summary__value {
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.rating-summary__count {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+}
+
+.rating-summary__cta {
+  margin-left: auto;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rating-summary__cta:hover {
+  background: var(--surface-bg);
 }
 
 @media (max-width: 720px) {

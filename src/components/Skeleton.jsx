@@ -126,6 +126,22 @@ export function SkeletonMovieDetail() {
           </div>
         </div>
 
+        <section className="section-block" aria-hidden="true">
+          <SkeletonBlock className="skeleton--line" style={{ width: 180, marginBottom: 14 }} />
+          <div className="information-panel">
+            <div className="rating-distribution rating-distribution--wide">
+              <SkeletonBlock className="skeleton--line" style={{ width: '35%', marginBottom: 8 }} />
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="rating-distribution__bar-row">
+                  <SkeletonBlock className="skeleton--line" style={{ width: 20 }} />
+                  <SkeletonBlock className="skeleton--bar" />
+                  <SkeletonBlock className="skeleton--line" style={{ width: 24 }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <div className="detail-reviews-section">
           <SkeletonBlock className="skeleton--line" style={{ width: 220, height: 20, marginBottom: 16 }} />
           <div className="review-panel">
