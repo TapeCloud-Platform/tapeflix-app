@@ -37,11 +37,11 @@ export default function CatalogPage({
   return (
     <main className="app-main">
       <section className="section-block">
-        <div className="section-header">
-          <h2>{active.type === 'combined' ? 'Resultados' : (activeFilter?.label ?? 'Contenido')}</h2>
-          {isFiltered && !loading && <span className="count-badge">{movies.length} resultados</span>}
+        {isFiltered && (
+          <div className="section-header">
+            <h2>{active.type === 'combined' ? 'Resultados' : (activeFilter?.label ?? 'Contenido')}</h2>
+            {!loading && <span className="count-badge">{movies.length} resultados</span>}
 
-          {isFiltered && (
             <Chip
               color="accent"
               variant="soft"
@@ -54,8 +54,8 @@ export default function CatalogPage({
               {activeLabelText}
               <span aria-hidden="true">✕</span>
             </Chip>
-          )}
-        </div>
+          </div>
+        )}
 
         {error && <p className="error">{error}</p>}
 
