@@ -88,16 +88,6 @@ export default function SettingsMenu({
           </div>
 
           {sessionUser && (
-            <>
-              <p className="settings-menu__hint">Gestioná tu foto y tus datos desde el portal de TapeCloud.</p>
-              <a className="settings-menu__item" href={portalUrl}>
-                Gestionar perfil en TapeCloud
-                <span aria-hidden="true">→</span>
-              </a>
-            </>
-          )}
-
-          {sessionUser && (
             <div className="user-menu__reviews">
               <button
                 type="button"

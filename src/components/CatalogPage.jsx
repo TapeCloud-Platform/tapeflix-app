@@ -39,7 +39,7 @@ export default function CatalogPage({
       <section className="section-block">
         <div className="section-header">
           <h2>{active.type === 'combined' ? 'Resultados' : (activeFilter?.label ?? 'Contenido')}</h2>
-          {!loading && <span className="count-badge">{movies.length} resultados</span>}
+          {isFiltered && !loading && <span className="count-badge">{movies.length} resultados</span>}
 
           {isFiltered && (
             <Chip
