@@ -1,12 +1,22 @@
 {
+<<<<<<< HEAD
   "name": "tapeflix-videoapi",
+=======
+  "name": "tapeflix-app",
+>>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+<<<<<<< HEAD
     "preview": "vite preview"
+=======
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+>>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
   },
   "dependencies": {
     "@heroui/react": "3.2.5",
@@ -20,6 +30,11 @@
     "@tailwindcss/vite": "^4.3.1",
     "@vitejs/plugin-react": "^4.3.2",
     "tailwindcss": "^4.3.1",
+<<<<<<< HEAD
     "vite": "^5.4.10"
+=======
+    "vite": "^5.4.10",
+    "vitest": "^3.0.0"
+>>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
   }
 }
