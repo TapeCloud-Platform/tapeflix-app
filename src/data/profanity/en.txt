@@ -1,0 +1,27 @@
+# English - one word per line. Local pre-check; backend validates authoritatively.
+fuck
+fucking
+fucker
+shit
+bitch
+bastard
+dick
+cunt
+whore
+slut
+asshole
+motherfucker
+nigger
+nigga
+faggot
+retard
+cock
+pussy
+douchebag
+prick
+wanker
+cum
+blowjob
+tits
+porn
+kill yourself
