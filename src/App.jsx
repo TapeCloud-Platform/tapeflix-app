@@ -7,7 +7,6 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import AppHeader from './components/AppHeader';
-<<<<<<< HEAD
 import CatalogPage from './components/CatalogPage';
 import MovieDetailPage from './components/MovieDetailPage';
 import { discover, getFilters } from './discoverApi';
@@ -16,31 +15,6 @@ import { useTheme } from './utils/theme';
 const SOURCE_APP = 'tapeflix';
 const RESULT_LIMIT = 40;
 
-=======
-import CategoryDrawer from './components/CategoryDrawer';
-import CatalogPage from './components/CatalogPage';
-import MovieDetailPage from './components/MovieDetailPage';
-import PersonDetailPage from './components/PersonDetailPage';
-import UserProfilePage from './components/UserProfilePage';
-import AuthModal from './components/AuthModal';
-import Footer from './components/Footer';
-import LoginPage from './components/LoginPage';
-import RegisterPage from './components/RegisterPage';
-import { discover, getFilters, searchAll } from './discoverApi';
-import { checkSession, getMe, logout, setMemoryToken, clearMemoryToken } from './api';
-import { useTheme } from './utils/theme';
-import { broadcastLogout, syncSessionToPortal } from './sso';
-
-const SOURCE_APP = 'tapeflix';
-const PORTAL_URL = import.meta.env.VITE_PORTAL_URL || 'http://localhost:5173';
-const TAPEFLIX_URL = import.meta.env.VITE_TAPEFLIX_URL || 'http://localhost:5174';
-const RESULT_LIMIT = 40;
-const SUGGESTION_PER_GROUP = 4;
-const SUGGESTION_DEBOUNCE_MS = 250;
-const NAV_GENRE_COUNT = 8;
-
-/** Mezcla una lista (Fisher-Yates) sin mutar la original. */
->>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
 function shuffled(list) {
   const arr = [...list];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -50,58 +24,6 @@ function shuffled(list) {
   return arr;
 }
 
-<<<<<<< HEAD
-function AppShell({ active, setActive, items, loading, error, filters, setFilters, navGenres, setNavGenres }) {
-  const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState({ groups: [], flat: [] });
-=======
-function consumeSsoParams() {
-  const params = new URLSearchParams(window.location.search);
-
-  const theme = params.get('sso_theme');
-  if (theme === 'dark' || theme === 'light') {
-    localStorage.setItem('tapecloud_theme', theme);
-  }
-
-  if (params.get('sso_logout') === 'true') {
-    localStorage.removeItem('tapecloud_email');
-    localStorage.removeItem('tapecloud_display_name');
-    localStorage.removeItem('tapecloud_avatar');
-    window.history.replaceState({}, '', window.location.pathname);
-    return;
-  }
-
-  // La auth viaja por cookie httpOnly: el token ya no pasa por URL.
-  // Se restaura solo perfil UI (email/display/avatar); la sesión se valida
-  // contra /api/auth/me con credentials:include.
-  const email = params.get('sso_email');
-  if (email) {
-    localStorage.setItem('tapecloud_email', email);
-    localStorage.setItem('tapecloud_display_name', params.get('sso_display_name') || '');
-    const avatar = params.get('sso_avatar');
-    if (avatar) {
-      localStorage.setItem('tapecloud_avatar', avatar);
-    } else {
-      localStorage.removeItem('tapecloud_avatar');
-    }
-    window.history.replaceState({}, '', window.location.pathname);
-  }
-}
-
-function getSessionUser() {
-  const email = localStorage.getItem('tapecloud_email');
-  if (!email) {
-    return null;
-  }
-  return {
-    email,
-    displayName: localStorage.getItem('tapecloud_display_name') || email.split('@')[0],
-    avatarDataUri: localStorage.getItem('tapecloud_avatar') || null,
-  };
-}
-
-/** El header y el drawer viven fuera de las rutas para no desaparecer en el detalle. */
 function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange }) {
   const navigate = useNavigate();
   const [filters, setFilters] = useState([]);
@@ -110,18 +32,13 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState([]);
->>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
+  const [suggestions, setSuggestions] = useState({ groups: [], flat: [] });
   const previewTimer = useRef(null);
 
   useEffect(() => {
     getFilters(SOURCE_APP).then(setFilters).catch(() => setFilters([]));
   }, []);
 
-<<<<<<< HEAD
-=======
-  // Búsqueda "en vivo" agrupada: películas + personas + usuarios en paralelo.
->>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
   function handleSearchPreview(query) {
     clearTimeout(previewTimer.current);
     if (query.length < 2) {
@@ -130,37 +47,22 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
     }
     setSuggestions(null);
     previewTimer.current = setTimeout(() => {
-<<<<<<< HEAD
       discover(SOURCE_APP, { type: 'search', value: query, limit: 4 })
         .then(setSuggestions)
         .catch(() => setSuggestions({ groups: [], flat: [] }));
     }, 250);
-=======
-      searchAll(SOURCE_APP, query, SUGGESTION_PER_GROUP)
-        .then(setSuggestions)
-        .catch(() => setSuggestions({ groups: [], flat: [] }));
-    }, SUGGESTION_DEBOUNCE_MS);
->>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
   }
 
   useEffect(() => () => clearTimeout(previewTimer.current), []);
 
   useEffect(() => {
     let cancelled = false;
-<<<<<<< HEAD
-    async function load() {
-      try {
-        const data = await discover(SOURCE_APP, active);
-=======
 
     async function load() {
       try {
         setLoading(true);
         setError('');
-        const data = active.type === 'combined'
-          ? await discover(SOURCE_APP, { filters: combinedParams(active.value), limit: RESULT_LIMIT })
-          : await discover(SOURCE_APP, { ...active, limit: RESULT_LIMIT });
->>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
+        const data = await discover(SOURCE_APP, { ...active, limit: RESULT_LIMIT });
         if (!cancelled) {
           setItems(data || []);
         }
@@ -169,14 +71,6 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
           setError(err.message || 'No se pudo cargar el contenido.');
           setItems([]);
         }
-<<<<<<< HEAD
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [active]);
-
-=======
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -190,113 +84,38 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
     };
   }, [active]);
 
-  // Etiquetas del drawer a query params: género multi (coma), país multi,
-  // artista multi, álbum y búsqueda simples.
-  function combinedParams(tags) {
-    const pick = (type) => tags.filter((t) => t.type === type).map((t) => t.value);
-    const params = {};
-    const genres = pick('genre');
-    if (genres.length > 0) {
-      params.genre = genres.join(',');
-    }
-    const countries = pick('country');
-    if (countries.length > 0) {
-      params.country = countries.join('|');
-    }
-    const artists = [...pick('artist'), ...pick('people')];
-    if (artists.length > 0) {
-      params.artist = artists.join(',');
-    }
-    const albums = pick('album');
-    if (albums.length > 0) {
-      params.album = albums[0];
-    }
-    const searches = pick('search');
-    if (searches.length > 0) {
-      params.search = searches[0];
-    }
-    return params;
-  }
-
-  // Filtrar desde el detalle debe devolver al catálogo para ver los resultados.
->>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
   function applyFilter(filter) {
     setActive(filter);
     navigate('/catalog');
   }
 
-<<<<<<< HEAD
-  const activeFilter = filters.find((f) => f.type === active.type);
-=======
-  function selectPerson(item) {
-    navigate(`/person/${encodeURIComponent(item.title)}`);
-  }
-
-  function selectUser(item) {
-    const username = item.genre || item.title.replace(/^@/, '');
-    navigate(`/user/${encodeURIComponent(username)}`);
-  }
-
   const activeFilter = filters.find((filter) => filter.type === active.type);
-  const portalUrl = `${PORTAL_URL}?sso_theme=${theme}`;
-  const combinedLabel = active.type === 'combined' ? active.label : null;
-
-  // Géneros del header en orden aleatorio: el nav y las secciones del inicio
-  // comparten la misma lista para que las categorías carguen en base a eso.
   const navGenres = useMemo(() => {
     const options = filters.find((filter) => filter.type === 'genre')?.options ?? [];
-    return shuffled(options).slice(0, NAV_GENRE_COUNT);
+    return shuffled(options).slice(0, 8);
   }, [filters]);
->>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
 
   return (
     <div className="app-shell">
       <AppHeader
         appName="TapeFlix"
-<<<<<<< HEAD
         tagline="Películas y series con VideoAPI"
         sessionUser={null}
         onLogout={() => {}}
         onLoginClick={() => {}}
-=======
-        tagline="Películas y reseñas"
-        portalUrl={portalUrl}
-        sessionUser={sessionUser}
-        onLogout={onLogout}
-        onLoginClick={onLoginClick}
->>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
         onSearch={(query) => applyFilter({ type: 'search', value: query })}
         onSearchPreview={handleSearchPreview}
         suggestions={suggestions}
         onOpenMenu={() => setMenuOpen(true)}
         onHome={() => applyFilter({ type: 'top', value: '' })}
-<<<<<<< HEAD
         theme="dark"
         onThemeChange={() => {}}
-=======
-        onSelectPerson={selectPerson}
-        onSelectUser={selectUser}
-        theme={theme}
-        onThemeChange={onThemeChange}
->>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
         filters={filters}
         navGenres={navGenres}
         active={active}
         onApplyFilter={applyFilter}
       />
 
-<<<<<<< HEAD
-=======
-      <CategoryDrawer
-        open={menuOpen}
-        filters={filters}
-        active={active}
-        onApply={applyFilter}
-        onClose={() => setMenuOpen(false)}
-        sourceApp={SOURCE_APP}
-      />
-
->>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
       <Routes>
         <Route
           path="/catalog"
@@ -309,21 +128,11 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
               active={active}
               filters={filters}
               navGenres={navGenres}
-<<<<<<< HEAD
-=======
-              activeLabel={combinedLabel}
->>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
               onClearFilters={() => applyFilter({ type: 'top', value: '' })}
             />
           }
         />
-<<<<<<< HEAD
         <Route path="/movie/:movieId" element={<MovieDetailPage />} />
-=======
-        <Route path="/movie/:movieId" element={<MovieDetailPage sessionUser={sessionUser} onLoginClick={onLoginClick} />} />
-        <Route path="/person/:personName" element={<PersonDetailPage sessionUser={sessionUser} onLoginClick={onLoginClick} />} />
-        <Route path="/user/:username" element={<UserProfilePage />} />
->>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
         <Route path="/" element={<Navigate to="/catalog" replace />} />
       </Routes>
     </div>
@@ -331,159 +140,26 @@ function AppShell({ sessionUser, onLogout, onLoginClick, theme, onThemeChange })
 }
 
 export default function App() {
-<<<<<<< HEAD
   const [active, setActive] = useState({ type: 'top', value: '' });
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filters, setFilters] = useState([]);
-  const [navGenres, setNavGenres] = useState([]);
-
-  useEffect(() => {
-    const options = filters.find((f) => f.type === 'genre')?.options ?? [];
-    setNavGenres(shuffled(options).slice(0, 8));
-  }, [filters]);
-
-  return (
-    <AppShell
-      active={active}
-      setActive={setActive}
-      items={items}
-      setItems={setItems}
-      loading={loading}
-      setLoading={setLoading}
-      error={error}
-      setError={setError}
-      filters={filters}
-      setFilters={setFilters}
-      navGenres={navGenres}
-      setNavGenres={setNavGenres}
-    />
-=======
-  // Se consume de forma síncrona (no en un efecto) porque la ruta "/" redirige
-  // a "/catalog" con <Navigate>, cuyo efecto corre ANTES que el de este
-  // componente (los efectos de los hijos disparan primero) y ya habría
-  // limpiado el query string con los parámetros de SSO.
-  const [sessionUser, setSessionUser] = useState(() => {
-    consumeSsoParams();
-    return getSessionUser();
-  });
-  const [theme, setTheme] = useTheme();
-  const [authView, setAuthView] = useState(null);
-
-  useEffect(() => {
-    // La cookie httpOnly se revalida contra el backend; un 401 limpia el
-    // perfil UI local. Si hay cookie válida pero sin perfil local (login en
-    // otra app), se restaura vía /api/auth/me.
-    let cancelled = false;
-    async function validateSession() {
-      const valid = await checkSession();
-      if (cancelled) return;
-      if (!valid) {
-        localStorage.removeItem('tapecloud_email');
-        localStorage.removeItem('tapecloud_display_name');
-        localStorage.removeItem('tapecloud_avatar');
-        setSessionUser(null);
-        return;
-      }
-      if (!localStorage.getItem('tapecloud_email')) {
-        try {
-          const me = await getMe();
-          if (cancelled) return;
-          localStorage.setItem('tapecloud_email', me.email);
-          localStorage.setItem('tapecloud_display_name', me.displayName || me.email.split('@')[0]);
-          if (me.avatarDataUri) localStorage.setItem('tapecloud_avatar', me.avatarDataUri);
-          setSessionUser({
-            email: me.email,
-            displayName: me.displayName || me.email.split('@')[0],
-            avatarDataUri: me.avatarDataUri || null,
-          });
-        } catch {
-          // /me falló pero la cookie parece válida: no se cierra sesión.
-        }
-      }
-    }
-    validateSession();
-    window.addEventListener('focus', validateSession);
-    window.addEventListener('pageshow', validateSession);
-    return () => {
-      cancelled = true;
-      window.removeEventListener('focus', validateSession);
-      window.removeEventListener('pageshow', validateSession);
-    };
-  }, []);
-
-  useEffect(() => {
-    // Si el navegador restaura esta página desde el bfcache (botón "atrás" al
-    // volver de otra app del ecosistema) en vez de recargarla de verdad, el CSS
-    // puede quedar a medio aplicar. Forzar un reload evita ese estado raro.
-    function handlePageShow(event) {
-      if (event.persisted) {
-        window.location.reload();
-      }
-    }
-    window.addEventListener('pageshow', handlePageShow);
-    return () => window.removeEventListener('pageshow', handlePageShow);
-  }, []);
-
-  async function handleLogout() {
-    // 1. Invalida la sesión en el backend (limpia cookie; aunque falle, se sigue local).
-    try {
-      await logout();
-    } catch {
-      // Sin conexión o sesión ya inválida: igual se cierra localmente.
-    }
-    // 2. Avisa al portal y a TapeBeat para que cierren su propio perfil UI (SSO).
-    broadcastLogout(theme, TAPEFLIX_URL);
-    clearMemoryToken();
-    localStorage.removeItem('tapecloud_email');
-    localStorage.removeItem('tapecloud_display_name');
-    localStorage.removeItem('tapecloud_avatar');
-    setSessionUser(null);
-  }
-
-  function handleLoginSuccess(response) {
-    // Híbrido: cookie httpOnly (la setea el backend) + token en memoria
-    // como respaldo si el navegador bloquea cookies de terceros.
-    setMemoryToken(response.token);
-    localStorage.setItem('tapecloud_email', response.email);
-    localStorage.setItem('tapecloud_display_name', response.displayName || response.email.split('@')[0]);
-    if (response.avatarDataUri) {
-      localStorage.setItem('tapecloud_avatar', response.avatarDataUri);
-    } else {
-      localStorage.removeItem('tapecloud_avatar');
-    }
-    setSessionUser({
-      email: response.email,
-      displayName: response.displayName || response.email.split('@')[0],
-      avatarDataUri: response.avatarDataUri || null,
-    });
-    setAuthView(null);
-    syncSessionToPortal(response, theme);
-  }
 
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AppShell
-        sessionUser={sessionUser}
-        onLogout={handleLogout}
-        onLoginClick={() => setAuthView('login')}
-        theme={theme}
-        onThemeChange={setTheme}
+        active={active}
+        setActive={setActive}
+        items={items}
+        setItems={setItems}
+        loading={loading}
+        setLoading={setLoading}
+        error={error}
+        setError={setError}
+        filters={filters}
+        setFilters={setFilters}
       />
-
-      {authView && (
-        <AuthModal onClose={() => setAuthView(null)} theme={theme}>
-          {authView === 'login' ? (
-            <LoginPage onSuccess={handleLoginSuccess} onGoToRegister={() => setAuthView('register')} />
-          ) : (
-            <RegisterPage onSuccess={handleLoginSuccess} onGoToLogin={() => setAuthView('login')} />
-          )}
-        </AuthModal>
-      )}
-
-      <Footer theme={theme} />
     </Router>
->>>>>>> 0579c975b38e5f6355578da460b97ececc4aa252
   );
 }
